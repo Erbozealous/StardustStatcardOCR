@@ -20,7 +20,7 @@ def processPointDefense(text):
     }
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')
-    weapon_name = next((line for line in lines if line.strip()), "Unknown Weapon")
+    weapon_name = re.sub(r"@", "0", next((line for line in lines if line.strip()), "Unknown Weapon"))
     
     # Process text and fill template
     # Look for specific patterns in the text
@@ -46,7 +46,7 @@ def processPointDefense(text):
         template['reload'] = re.sub(r"@", "0", reload_match.group(1)) + " s"
     
     # Modifier Accuracy
-    modrange_match = re.search(r'Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
+    modrange_match = re.search(r'^((?!Missile|Spacecraft).)*Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
     if modrange_match:
         modrange_string = modrange_match.group(1) + " <br> " + modrange_match.group(2)
         if modrange_match.group(3): modrange_string+=" <br> " + modrange_match.group(3)
