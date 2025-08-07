@@ -81,8 +81,9 @@ def processPointDefense(text):
         template['spacecraftaccuracy'] = re.sub(r"kn", r"km", space_mod_string)
 
     # Extract Accuracy
-    accuracy = re.search(r'^(?!.*Values)Accuracy\D+(\d+.?\d).$', text, re.MULTILINE)
-    if accuracy:
+    accuracy = re.search(r'^(?!.*Values|.*Info)Accuracy\D+(\d+.?\d).$', text, re.MULTILINE)
+    # Accuracy is mutuall exclusive with other forms of accuracy
+    if accuracy and (not missileaccuracy or not spacecraftaccuracy) and (not accuracyvalues or not modrange or not missilehitchance or not spacecrafthitchance):
         template['accuracy'] = accuracy.group(1) + "%"
 
     # missilehitchance
