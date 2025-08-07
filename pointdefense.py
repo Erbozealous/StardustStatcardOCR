@@ -35,9 +35,12 @@ def processPointDefense(text):
         template['range'] = range_match.group(1) + " km"
     
     # Extract Muzzle Velocity
-    mv_match = re.search(r'Muzzle Velocity\D+(\d+)', text)
+    mv_match = re.search(r'Muzzle Velocity[^\dIi]+(\d+|Instant)', text)
     if mv_match:
-        template['MV'] = mv_match.group(1) + " m/s"
+        if mv_match.group(1) == "Instant":
+            template['MV'] = "Instant"
+        else:
+            template['MV'] = mv_match.group(1) + " m/s"
     
     # Extract Reload Time
     reload = re.search(r'Reload[^@\d]*([\d@]+\.?\d*)', text)
@@ -49,7 +52,6 @@ def processPointDefense(text):
     modrange = re.search(r'Modified Ranges\D+(\d+)\D+(\d+)', text)
     if modrange:
         template['modrange'] = modrange.group(1) + " km - " + modrange.group(2) + " km"
-
 
 
     # accuracyvalues
