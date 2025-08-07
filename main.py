@@ -3,10 +3,8 @@
 # Import libraries
 import pytesseract
 from PIL import Image, ImageGrab
-import re
 import tkinter as tk
 from tkinter import ttk, filedialog, scrolledtext
-import io
 from tkinter import messagebox
 import subprocess
 import tempfile
