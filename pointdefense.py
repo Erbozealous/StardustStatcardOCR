@@ -77,11 +77,20 @@ def processPointDefense(text):
         if spacecraftaccuracy.group(3): space_mod_string+=" <br> " + spacecraftaccuracy.group(3)
         template['spacecraftaccuracy'] = re.sub(r"kn", r"km", space_mod_string)
 
-
     # Extract Accuracy
     accuracy_match = re.search(r'^(?!.*Values).*Accuracy\D+(\d+.?\d)', text)
     if accuracy_match:
         template['accuracy'] = accuracy_match.group(1) + "%"
+
+    # missilehitchance
+    missilehitchance = re.search(r'Missile Hitchance\D+(\d+)', text)
+    if missilehitchance:
+        template['missilehitchance'] = missilehitchance.group(1) + "%"
+
+    # spacecrafthitchance
+    spacecrafthitchance = re.search(r'Spacecraft Hitchance\D+(\d+)', text)
+    if spacecrafthitchance:
+        template['spacecrafthitchance'] = spacecrafthitchance.group(1) + "%"
     
     # Extract Prioritized Type
     type_match = re.search(r'Prioritized Type.* ([\w\s][^\n]+)', text)
