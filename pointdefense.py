@@ -40,21 +40,44 @@ def processPointDefense(text):
         template['MV'] = mv_match.group(1) + " m/s"
     
     # Extract Reload Time
-    reload_match = re.search(r'Reload[^@.]*([\d@]+\.?\d*)', text)
-    if reload_match:
+    reload = re.search(r'Reload[^@\d]*([\d@]+\.?\d*)', text)
+    if reload:
         # Replace '@' with '0' and append seconds
-        template['reload'] = re.sub(r"@", "0", reload_match.group(1)) + " s"
+        template['reload'] = re.sub(r"@", "0", reload.group(1)) + " s"
     
-    # Modifier Accuracy
-    modrange_match = re.search(r'^((?!Missile|Spacecraft).)*Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
-    if modrange_match:
-        modrange_string = modrange_match.group(1) + " <br> " + modrange_match.group(2)
-        if modrange_match.group(3): modrange_string+=" <br> " + modrange_match.group(3)
-        template['accuracyvalues'] = re.sub(r"kn", r"km", modrange_string)
+    # modrange
+    modrange = re.search(r'Modified Ranges\D+(\d+)\D+(\d+)', text)
+    if modrange:
+        template['modrange'] = modrange.group(1) + " km - " + modrange.group(2) + " km"
+
+
+
+    # accuracyvalues
+    accuracyvalues = re.search(r'^((?!Missile|Spacecraft).)*Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
+    if accuracyvalues:
+        accuracyvalues_string = accuracyvalues.group(1) + " <br> " + accuracyvalues.group(2)
+        if accuracyvalues.group(3): accuracyvalues_string+=" <br> " + accuracyvalues.group(3)
+        template['accuracyvalues'] = re.sub(r"kn", r"km", accuracyvalues_string)
+
+
+    # Missile Accuracy
+    missileaccuracy = re.search(r'Missile Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
+    if missileaccuracy:
+        missile_mod_string = missileaccuracy.group(1) + " <br> " + missileaccuracy.group(2)
+        if missileaccuracy.group(3): missile_mod_string+=" <br> " + missileaccuracy.group(3)
+        template['missileaccuracy'] = re.sub(r"kn", r"km", missile_mod_string)
+
+
+     # spacecraftaccuracy
+    spacecraftaccuracy = re.search(r'Spacecraft Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
+    if spacecraftaccuracy:
+        space_mod_string = spacecraftaccuracy.group(1) + " <br> " + spacecraftaccuracy.group(2)
+        if spacecraftaccuracy.group(3): space_mod_string+=" <br> " + spacecraftaccuracy.group(3)
+        template['spacecraftaccuracy'] = re.sub(r"kn", r"km", space_mod_string)
 
 
     # Extract Accuracy
-    accuracy_match = re.search(r'Accuracy\D*(\d+.?\d)', text)
+    accuracy_match = re.search(r'^(?!.*Values).*Accuracy\D+(\d+.?\d)', text)
     if accuracy_match:
         template['accuracy'] = accuracy_match.group(1) + "%"
     
