@@ -1,5 +1,3 @@
-
-
 # Import libraries
 import pytesseract
 from PIL import Image, ImageGrab

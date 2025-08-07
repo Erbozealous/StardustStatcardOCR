@@ -30,7 +30,7 @@ def processPointDefense(text):
         template['spacedamage'] = damage_match.group(1) + " - " + damage_match.group(2)
     
     # Extract Maximum Range
-    range_match = re.search(r'Maximum Range\D+([0-9]+)', text)
+    range_match = re.search(r'Maximum Range\D+([0-9]+\.?\d*)', text)
     if range_match:
         template['range'] = range_match.group(1) + " km"
     
