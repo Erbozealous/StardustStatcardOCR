@@ -55,10 +55,13 @@ def processPointDefense(text):
 
 
     # accuracyvalues
-    accuracyvalues = re.search(r'^((?!Missile|Spacecraft).)*Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
+    accuracyvalues = re.search(r'^((?!Missile|Spacecraft).)*Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text, re.MULTILINE)
     if accuracyvalues:
-        accuracyvalues_string = accuracyvalues.group(1) + " <br> " + accuracyvalues.group(2)
-        if accuracyvalues.group(3): accuracyvalues_string+=" <br> " + accuracyvalues.group(3)
+        print(accuracyvalues.group(2))
+        print(accuracyvalues.group(3))
+        print(accuracyvalues.group(4))
+        accuracyvalues_string = accuracyvalues.group(2) + " <br> " + accuracyvalues.group(3)
+        if accuracyvalues.group(4): accuracyvalues_string+=" <br> " + accuracyvalues.group(4)
         template['accuracyvalues'] = re.sub(r"kn", r"km", accuracyvalues_string)
 
 
@@ -78,9 +81,9 @@ def processPointDefense(text):
         template['spacecraftaccuracy'] = re.sub(r"kn", r"km", space_mod_string)
 
     # Extract Accuracy
-    accuracy_match = re.search(r'^(?!.*Values).*Accuracy\D+(\d+.?\d)', text)
-    if accuracy_match:
-        template['accuracy'] = accuracy_match.group(1) + "%"
+    accuracy = re.search(r'^(?!.*Values)Accuracy\D+(\d+.?\d).$', text, re.MULTILINE)
+    if accuracy:
+        template['accuracy'] = accuracy.group(1) + "%"
 
     # missilehitchance
     missilehitchance = re.search(r'Missile Hitchance\D+(\d+)', text)
