@@ -107,7 +107,7 @@ def processLaser(text):
     # dispersionmax
     dispersionmax = re.search(r'Dispersion At[^@\d]*([\d@]+\.?\d*)', text)
     if dispersionmax:
-        template['dispersionmax'] = re.sub(r"@", "0", dispersionmax.group(1)) + " degrees"
+        template['dispersionmax'] = re.sub(r"@", "0", dispersionmax.group(1)) + " m"
     
     # autoaim
     autoaim = re.search(r'Aim', text)
