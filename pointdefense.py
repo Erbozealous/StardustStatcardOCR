@@ -45,6 +45,14 @@ def processPointDefense(text):
         # Replace '@' with '0' and append seconds
         template['reload'] = re.sub(r"@", "0", reload_match.group(1)) + " s"
     
+    # Modifier Accuracy
+    modrange_match = re.search(r'Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
+    if modrange_match:
+        modrange_string = modrange_match.group(1) + " <br> " + modrange_match.group(2)
+        if modrange_match.group(3): modrange_string+=" <br> " + modrange_match.group(3)
+        template['accuracyvalues'] = re.sub(r"kn", r"km", modrange_string)
+
+
     # Extract Accuracy
     accuracy_match = re.search(r'Accuracy\D*(\d+.?\d)', text)
     if accuracy_match:
