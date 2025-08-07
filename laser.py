@@ -54,7 +54,7 @@ def processLaser(text):
         template['enddamage'] = enddamage.group(1) + " - " + enddamage.group(2)
     
     # damage
-    damage = re.search(r'^Damage\D+(\d+\.?\d*)\D+(\d+\.?\d*)$', text)
+    damage = re.search(r'(?!.*Info)Damage\D+(\d+\.?\d*)\D+(\d+\.?\d*)', text)
     if(damage):
         template['damage'] = damage.group(1) + " - " + damage.group(2)
 
@@ -64,24 +64,27 @@ def processLaser(text):
         template['shielddamage'] = shielddamage.group(1) + "x"
 
     # shieldbypass
-    shieldbypass = re.search(r'Shield Gate Bypass\D*(No|Yes)', text)
+    shieldbypass = re.search(r'Shield Gate Bypass.*(No|Yes)', text)
     if shieldbypass:
         template['shieldbypass'] = shieldbypass.group(1)
 
     # objectives
     objectives = re.search(r'Objective\D*(No|Yes)', text)
     if objectives:
-        template['objectives'] = "Yes" if objectives.group(1) == "Yes" else "No"
+        template['objectives'] = objectives.group(1)
 
     # charge
     charge = re.search(r'Charge\D*(\d*\.?\d*)', text)
     if charge:
-        template['charge'] = re.sub(r"@", "0", reload.group(1)) + " s"
+        template['charge'] = re.sub(r"@", "0", charge.group(1)) + " s"
 
     # reload
-    reload = re.search(r'Reload\D*(\d*\.?\d*)', text)
+    reload = re.search(r'Reload\D*(\d*\.?\d*)\D*(\d*\.?\d*)?', text)
     if reload:
-        template['reload'] = re.sub(r"@", "0", reload.group(1)) + " s"
+        if reload.group(2):
+            template['reload'] = re.sub(r"@", "0", reload.group(1) + " s - " + reload.group(2) + " s" )
+        else:
+            template['reload'] = re.sub(r"@", "0", reload.group(1)) + " s"
 
     # range
     range_match = re.search(r'Max\D*(\d*\.?\d*)', text)
@@ -89,12 +92,12 @@ def processLaser(text):
         template['range'] = range_match.group(1) + " km"
 
     # MV
-    MV = re.search(r'zz\D*(\d+|Instant)', text)
-    if MV:
-        if MV.group(1) == "Instant":
+    muzzlevelocity = re.search(r'zz\D*(\d+|Instant)', text)
+    if muzzlevelocity:
+        if muzzlevelocity.group(1) == "Instant":
             template['MV'] = "Instant"
         else:
-            template['MV'] = MV.group(1) + " m/s"
+            template['MV'] = muzzlevelocity.group(1) + " m/s"
     
     # dispersion
     dispersion = re.search(r'Angle[^@\d]*([\d@]+\.?\d*)', text)
