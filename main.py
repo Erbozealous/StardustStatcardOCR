@@ -1,5 +1,5 @@
 import pytesseract
-from PIL import Image
+from PIL import Image, ImageGrab
 import re
 import tkinter as tk
 from tkinter import ttk, filedialog, scrolledtext
@@ -8,6 +8,7 @@ from tkinter import messagebox
 import subprocess
 import tempfile
 import os
+import platform
 
 class WeaponStatsGUI:
     def __init__(self, root):
@@ -70,55 +71,63 @@ class WeaponStatsGUI:
     def paste_from_clipboard(self):
         temp_path = None
         try:
-            # Create a temporary file to save the clipboard image
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
-                temp_path = temp_file.name
-            
-            print(f"Created temporary file: {temp_path}")
-            
-            # Use wl-paste to save clipboard image to the temporary file
-            try:
-                result = subprocess.run(['wl-paste', '-t', 'image/png'], 
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE,
-                                      check=True)
+            if platform.system() == "Darwin":
+                # macOS path using ImageGrab
+                image = ImageGrab.grabclipboard()
+                if image is None:
+                    raise ValueError("No image found in clipboard on macOS")
                 
-                # Write the output to our file
-                with open(temp_path, 'wb') as f:
-                    f.write(result.stdout)
-                    
-                print(f"wl-paste output size: {len(result.stdout)} bytes")
-                if result.stderr:
-                    print(f"wl-paste stderr: {result.stderr.decode()}")
-                    
-            except subprocess.CalledProcessError as e:
-                print(f"wl-paste error: {e}")
-                print(f"stderr: {e.stderr.decode() if e.stderr else 'No error output'}")
-                raise ValueError(f"No image found in clipboard: {e}")
-            
-            # Check if we got any data
-            if os.path.getsize(temp_path) == 0:
-                raise ValueError("No image data in clipboard")
+                result = process_image_from_pil(image, self.weapon_type.get())
+                self.output_text.delete(1.0, tk.END)
+                self.output_text.insert(tk.END, result)
+                self.status_var.set("Clipboard image processed successfully (macOS)")
+
+            else:
+                # Wayland path (Linux)
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
+                    temp_path = temp_file.name
                 
-            # Open and process the image
-            image = Image.open(temp_path)
-            result = process_image_from_pil(image, self.weapon_type.get())
-            
-            self.output_text.delete(1.0, tk.END)
-            self.output_text.insert(tk.END, result)
-            self.status_var.set("Clipboard image processed successfully")
-            
+                print(f"Created temporary file: {temp_path}")
+                
+                try:
+                    result = subprocess.run(['wl-paste', '-t', 'image/png'], 
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE,
+                                            check=True)
+                    
+                    with open(temp_path, 'wb') as f:
+                        f.write(result.stdout)
+                    
+                    print(f"wl-paste output size: {len(result.stdout)} bytes")
+                    if result.stderr:
+                        print(f"wl-paste stderr: {result.stderr.decode()}")
+                        
+                except subprocess.CalledProcessError as e:
+                    print(f"wl-paste error: {e}")
+                    print(f"stderr: {e.stderr.decode() if e.stderr else 'No error output'}")
+                    raise ValueError(f"No image found in clipboard: {e}")
+                
+                if os.path.getsize(temp_path) == 0:
+                    raise ValueError("No image data in clipboard")
+                
+                image = Image.open(temp_path)
+                result = process_image_from_pil(image, self.weapon_type.get())
+                
+                self.output_text.delete(1.0, tk.END)
+                self.output_text.insert(tk.END, result)
+                self.status_var.set("Clipboard image processed successfully")
+
         except Exception as e:
             messagebox.showerror("Error", f"No valid image in clipboard: {str(e)}")
             self.status_var.set("Error processing clipboard")
-            
+
         finally:
-            # Clean up the temporary file
             if temp_path and os.path.exists(temp_path):
                 try:
                     os.unlink(temp_path)
                 except:
                     pass
+
 
 def process_image_from_pil(image, weapon_type='pointdefense'):
     # Extract text using pytesseract
