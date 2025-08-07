@@ -49,7 +49,7 @@ def processPointDefense(text):
         template['reload'] = re.sub(r"@", "0", reload.group(1)) + " s"
     
     # modrange
-    modrange = re.search(r'Modified Ranges\D+(\d+)\D+(\d+)', text)
+    modrange = re.search(r'Modified Ranges\D+(\d+\.?\d*)\D+(\d+\.?\d*)', text)
     if modrange:
         template['modrange'] = modrange.group(1) + " km - " + modrange.group(2) + " km"
 
