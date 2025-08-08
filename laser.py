@@ -54,7 +54,7 @@ def processLaser(text):
         template['enddamage'] = enddamage.group(1) + " - " + enddamage.group(2)
     
     # damage
-    damage = re.search(r'(?!.*Info)Damage\D+(\d+\.?\d*)\D+(\d+\.?\d*)', text)
+    damage = re.search(r'(?!.*Info)Da[nm]age\D+(\d+\.?\d*)\D+(\d+\.?\d*)', text)
     if(damage):
         template['damage'] = damage.group(1) + " - " + damage.group(2)
 
@@ -64,7 +64,7 @@ def processLaser(text):
         template['shielddamage'] = shielddamage.group(1) + "x"
 
     # shieldbypass
-    shieldbypass = re.search(r'Shield Gate Bypass.*(No|Yes)', text)
+    shieldbypass = re.search(r'Gate.*(No|Yes)', text)
     if shieldbypass:
         template['shieldbypass'] = shieldbypass.group(1)
 
