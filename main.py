@@ -80,7 +80,7 @@ class WeaponStatsGUI:
     def paste_from_clipboard(self):
         temp_path = None
         try:
-            if platform.system() == "Darwin":
+            if platform.system() == "Darwin" or platform.system() == "Windows":
                 # macOS path using ImageGrab
                 image = ImageGrab.grabclipboard()
                 if image is None:
