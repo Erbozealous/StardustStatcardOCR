@@ -72,7 +72,7 @@ class WeaponStatsGUI:
                 result = process_image_to_template(image, self.weapon_type.get())
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
-                self.status_var.set("Image processed successfully")
+                self.status_var.set(self.weapon_type.get() +  " processed successfully")
             except Exception as e:
                 messagebox.showerror("Error", f"Error processing image: {str(e)}")
                 self.status_var.set("Error processing image")
@@ -84,12 +84,12 @@ class WeaponStatsGUI:
                 # macOS path using ImageGrab
                 image = ImageGrab.grabclipboard()
                 if image is None:
-                    raise ValueError("No image found in clipboard on macOS")
+                    raise ValueError("No image found in clipboard (" + platform.system() + ")")
                 
                 result = process_image_to_template(image, self.weapon_type.get())
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
-                self.status_var.set("Clipboard image processed successfully (macOS)")
+                self.status_var.set("Clipboard image processed successfully (" + platform.system() + ")")
 
             else:
                 # Wayland path (Linux)
@@ -124,7 +124,7 @@ class WeaponStatsGUI:
                 
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
-                self.status_var.set("Clipboard image processed successfully")
+                self.status_var.set(self.weapon_type.get() + " image processed successfully")
 
         except Exception as e:
             messagebox.showerror("Error", f"No valid image in clipboard: {str(e)}")
@@ -168,91 +168,7 @@ def process_image_to_template(image, weapon_type='pointdefense'):
     
     return output
 
-def get_template_for_type(weapon_type):
-    templates = {
-        'pointdefense': {
-            'spacedamage': '',
-            'range': '',
-            'MV': '',
-            'reload': '',
-            'modrange': '',
-            'missileaccuracy': '',
-            'spacecraftaccuracy': '',
-            'accuracyvalues': '',
-            'missilehitchance': '',
-            'spacecrafthitchance': '',
-            'accuracy': '',
-            'flakdamage': '',
-            'flakrange': '',
-            'flakshotrange': '',
-            'prioritizedtype': '',
-            'prioritizedprox': '',
-        },
-        'laser': {
-            'burst': '',
-            'burstsshots': '',
-            'burstsdelay': '',
-            'modrange': '',
-            'startdamage': '',
-            'enddamage': '',
-            'damage': '',
-            'shielddamage': '',
-            'shieldbypass': '',
-            'objectives': '',
-            'charge': '',
-            'reload': '',
-            'range': '',
-            'MV': '',
-            'dispersion': '',
-            'dispersionmax': '',
-            'autoaim': '',
-        },
-        'beam': {
-            'burst': '',
-            'burstsshots': '',
-            'burstsdelay': '',
-            'maxrange': '',
-            'total': '',
-            'damage': '',
-            'startdamage': '',
-            'enddamage': '',
-            'shielddamage': '',
-            'shieldbypass': '',
-            'hmaxrange': '',
-            'htotal': '',
-            'healing': '',
-            'starthealing': '',
-            'endhealing': '',
-            'shieldhealing': '',
-            'hshieldbypass': '',
-            'objectives': '',
-            'charge': '',
-            'reload': '',
-            'range': '',
-            'MV': '',
-            'dispersion': '',
-            'dispersionmax': '',
-            'autoaim': '',
-        },
-        'missile': {
-            'burst': '',
-            'burstsshots': '',
-            'burstsdelay': '',
-            'damage': '',
-            'shielddamage': '',
-            'shieldbypass': '',
-            'ASW': '',
-            'HP': '',
-            'disruption': '',
-            'objectives': '',
-            'charge': '',
-            'reload': '',
-            'range': '',
-            'MV': '',
-            'autoaim': '',
-        }
-    }
-    return templates.get(weapon_type, templates['pointdefense']).copy()
+
 
 def main():
     root = tk.Tk()
