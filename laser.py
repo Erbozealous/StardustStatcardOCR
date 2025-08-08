@@ -54,7 +54,7 @@ def processLaser(text):
         template['enddamage'] = enddamage.group(1) + " - " + enddamage.group(2)
     
     # damage
-    damage = re.search(r'(?!.*Info)Da[nm]age\D+(\d+\.?\d*)\D+(\d+\.?\d*)', text)
+    damage = re.search(r'(?!.*Info)Da[nm]age\D+([\d@]+\.?[\d@]*)\D+([\d@]+\.?[\d@]*)$', text)
     if(damage):
         template['damage'] = damage.group(1) + " - " + damage.group(2)
 
