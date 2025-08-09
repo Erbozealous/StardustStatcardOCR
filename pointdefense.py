@@ -63,6 +63,7 @@ def processPointDefense(text):
         accuracyvalues_string = accuracyvalues.group(2) + " <br> " + accuracyvalues.group(3)
         if accuracyvalues.group(4): accuracyvalues_string+=" <br> " + accuracyvalues.group(4)
         template['accuracyvalues'] = re.sub(r"kn", r"km", accuracyvalues_string)
+        template['accuracyvalues'] = re.sub(r"@", "0", template['accuracyvalues']) # Replace '@' with '0'
 
 
     # Missile Accuracy
@@ -71,6 +72,8 @@ def processPointDefense(text):
         missile_mod_string = missileaccuracy.group(1) + " <br> " + missileaccuracy.group(2)
         if missileaccuracy.group(3): missile_mod_string+=" <br> " + missileaccuracy.group(3)
         template['missileaccuracy'] = re.sub(r"kn", r"km", missile_mod_string)
+        # resub again to replace @ with 0
+        template['missileaccuracy'] = re.sub(r"@", "0", template['missileaccuracy'])
 
 
      # spacecraftaccuracy
@@ -79,12 +82,15 @@ def processPointDefense(text):
         space_mod_string = spacecraftaccuracy.group(1) + " <br> " + spacecraftaccuracy.group(2)
         if spacecraftaccuracy.group(3): space_mod_string+=" <br> " + spacecraftaccuracy.group(3)
         template['spacecraftaccuracy'] = re.sub(r"kn", r"km", space_mod_string)
+        # resub again to replace @ with 0
+        template['spacecraftaccuracy'] = re.sub(r"@", "0", template['spacecraftaccuracy'])
 
     # Extract Accuracy
     accuracy = re.search(r'^(?!.*Values|.*Info)Accuracy\D+(\d+.?\d).$', text, re.MULTILINE)
     # Accuracy is mutuall exclusive with other forms of accuracy
     if accuracy and (not missileaccuracy or not spacecraftaccuracy) and (not accuracyvalues or not modrange or not missilehitchance or not spacecrafthitchance):
         template['accuracy'] = accuracy.group(1) + "%"
+        
 
     # missilehitchance
     missilehitchance = re.search(r'Missile Hitchance\D+(\d+)', text)
