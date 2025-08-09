@@ -56,7 +56,8 @@ def processLaser(text):
     # damage
     damage = re.search(r'(?!.*Info)Da[nm]age\D+([\d@]+\.?[\d@]*)\D+([\d@]+\.?[\d@]*)$', text)
     if(damage):
-        template['damage'] = damage.group(1) + " - " + damage.group(2)
+       template['damage'] =  re.sub(r"@", "0", damage.group(1) + " - " + damage.group(2))
+        
 
     # shielddamage
     shielddamage = re.search(r'Shield Damage Multiplier\D*(\d+\.?\d*)', text)
