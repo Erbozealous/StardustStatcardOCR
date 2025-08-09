@@ -54,7 +54,7 @@ def processLaser(text):
         template['enddamage'] = enddamage.group(1) + " - " + enddamage.group(2)
     
     # damage
-    damage = re.search(r'(?!.*Info)Da[nm]age\D+([\d@]+\.?[\d@]*)\D+([\d@]+\.?[\d@]*)$', text)
+    damage = re.search(r'(?!.*Info)Da[nm]age\D+([\d@]+\.?[\d@]*)\D+([\d@]+\.?[\d@]*)$', text, re.MULTILINE)
     if(damage):
        template['damage'] =  re.sub(r"@", "0", damage.group(1) + " - " + damage.group(2))
         
@@ -80,7 +80,7 @@ def processLaser(text):
         template['charge'] = re.sub(r"@", "0", charge.group(1)) + " s"
 
     # reload
-    reload = re.search(r'Reload\D*(\d*\.?\d*)\D*(\d*\.?\d*)?', text)
+    reload = re.search(r'^Reload\D*(\d*\.?\d*)[^0-9\r\n]*(\d*\.?\d*)?', text, re.MULTILINE)
     if reload:
         if reload.group(2):
             template['reload'] = re.sub(r"@", "0", reload.group(1) + " s - " + reload.group(2) + " s" )
