@@ -62,6 +62,7 @@ class WeaponStatsGUI:
         self.status_var = tk.StringVar()
         self.status_bar = ttk.Label(root, textvariable=self.status_var, relief="sunken")
         self.status_bar.pack(fill="x", padx=5, pady=5)
+        self.status_var.set("The OCR can make mistakes. Make sure to double-check!")
         
     def load_image_file(self):
         file_path = filedialog.askopenfilename(
@@ -89,7 +90,7 @@ class WeaponStatsGUI:
                 result = process_image_to_template(image, self.weapon_type.get())
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
-                self.status_var.set("Clipboard image processed successfully (" + platform.system() + ")")
+                self.status_var.set(self.weapon_type.get() +  " processed successfully")
 
             else:
                 # Wayland path (Linux)
