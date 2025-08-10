@@ -30,14 +30,19 @@ def processMissile(text):
         template['burst'] = burst.group(1) + " x"
     
     # burstsshots
-    burstsshots = re.search(r'Shots Per Burst\D*(\d+)', text)
+    burstsshots = re.search(r'Shots Per Burst[^0-9i@]*([\di@]+).*', text)
     if burstsshots:
-        template['burstsshots'] = burstsshots.group(1) + " x"
+        template['burstsshots'] = re.sub(r"i", "1", burstsshots.group(1))
+        template['burstsshots'] = re.sub(r"@", "0", template['burstsshots']) + " x"
+        
 
     # burstsdelay
     burstsdelay = re.search(r'Delay Between Bursts[^@\d]*([\d@]+\.?\d*)', text)
     if burstsdelay:
-        template['burstsdelay'] = re.sub(r"@", "0", burstsdelay.group(1)) + " s"
+        template['burstsdelay'] = re.sub(r"@", "0", burstsdelay.group(1))
+        # If number starts with 0 we add a decimal point
+        if template['burstsdelay'].startswith("0"):
+            template['burstsdelay'] = "0." + template['burstsdelay'][1:] + " s"
 
 
     # damage
@@ -69,7 +74,7 @@ def processMissile(text):
         template['HP'] = re.sub(r"@", "0", missileHP.group(1)) + " HP"
 
     # disruption
-    disruption = re.search(r'mmune.*(No|Yes)', text)
+    disruption = re.search(r'mune.*(No|Yes)', text)
     if disruption:
         template['disruption'] = disruption.group(1)
 
@@ -98,6 +103,8 @@ def processMissile(text):
         # Catch edge case where OCR reads X0 as X2
         if int(range_match.group(1)) and int(range_match.group(1)) % 10 == 2:
             template['range'] = str(int(range_match.group(1)) - 2) + " km"
+        else:
+            template['range'] = range_match.group(1) + " km"
 
     # MV
     muzzlevelocity = re.search(r'eed\D*(\d+)', text)
