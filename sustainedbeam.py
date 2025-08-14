@@ -89,7 +89,7 @@ def processSustainedBeam(text):
         
 
     # shielddamage
-    shielddamage = re.search(r'Shie\D+Da[nm]a\D+Mul\D*(\d+\.?\d*)', text)
+    shielddamage = re.search(r'Multi[^0-9\n]*(\d+\.?\d*)[^0-9\n]*$', text, re.MULTILINE)
     if shielddamage:
         template['shielddamage'] = shielddamage.group(1) + "x"
 
