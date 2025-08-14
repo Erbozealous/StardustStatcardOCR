@@ -37,7 +37,7 @@ class WeaponStatsGUI:
         ttk.Radiobutton(self.weapon_frame, text="Missile", value="missile", 
                         variable=self.weapon_type).pack(side="left", padx=5)
         ttk.Radiobutton(self.weapon_frame, text="Sustained Beam", value="beam", 
-                        variable=self.weapon_type, state="disabled").pack(side="left", padx=5)
+                        variable=self.weapon_type).pack(side="left", padx=5)
         
         # Input frame
         self.input_frame = ttk.LabelFrame(root, text="Input")
