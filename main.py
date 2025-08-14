@@ -1,6 +1,6 @@
 # Import libraries
 import pytesseract
-from PIL import Image, ImageGrab
+from PIL import Image, ImageGrab, ImageFilter
 import tkinter as tk
 from tkinter import ttk, filedialog, scrolledtext
 from tkinter import messagebox
@@ -128,7 +128,7 @@ class WeaponStatsGUI:
                 self.status_var.set(self.weapon_type.get() + " image processed successfully")
 
         except Exception as e:
-            messagebox.showerror("Error", f"No valid image in clipboard: {str(e)}")
+            messagebox.showerror("Error", f"Error: {str(e)}")
             self.status_var.set("Error processing clipboard")
 
         finally:
@@ -143,11 +143,13 @@ def process_image_to_template(image, weapon_type='pointdefense'):
     # Read the image using PIL
     
     # Convert image to grayscale if needed
-    image.convert("L")
+    # image = image.convert("L")
 
     # Because the screenshots taken are usually quite small, simply scaling it up increases the OCR accuracy tremendously
-    image = image.resize((image.width * 2, image.height * 2), Image.Resampling.BILINEAR)
+    if image.height < 600 and image.width < 600:
+        image = image.resize((image.width * 2, image.height * 2), Image.Resampling.BILINEAR)
 
+    
     
     # Extract text from image using pytesseract
     text = pytesseract.image_to_string(image, config="--psm 6")
