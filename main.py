@@ -145,6 +145,9 @@ def process_image_to_template(image, weapon_type='pointdefense'):
     # Convert image to grayscale if needed
     image.convert("L")
 
+    # Because the screenshots taken are usually quite small, simply scaling it up increases the OCR accuracy tremendously
+    image = image.resize((image.width * 2, image.height * 2), Image.Resampling.BILINEAR)
+
     
     # Extract text from image using pytesseract
     text = pytesseract.image_to_string(image, config="--psm 6")
