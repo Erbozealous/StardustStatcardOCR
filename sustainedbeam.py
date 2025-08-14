@@ -51,7 +51,7 @@ def processSustainedBeam(text):
         template['burstsdelay'] = re.sub(r"@", "0", burstsdelay.group(1)) + " s"
 
     # maxrange
-    maxrange = re.search(r'Dur\D+Range ([\d@i]+)', text)
+    maxrange = re.search(r'Dur\D+Range[^0-9\n]*([\d@i]+)', text)
     if maxrange:
         template['maxrange'] = re.sub(r"@", "0", maxrange.group(1))
         template['maxrange'] = re.sub(r"i", "1", template['maxrange']) + " s"
