@@ -49,7 +49,7 @@ def processPointDefense(text):
         template['reload'] = re.sub(r"@", "0", reload.group(1)) + " s"
     
     # modrange
-    modrange = re.search(r'Modified Ranges\D+(\d+\.?\d*)\D+(\d+\.?\d*)', text)
+    modrange = re.search(r'Modifi\D+(\d+\.?\d*)\D+(\d+\.?\d*)', text)
     if modrange:
         template['modrange'] = modrange.group(1) + " km - " + modrange.group(2) + " km"
 
@@ -103,12 +103,12 @@ def processPointDefense(text):
         template['spacecrafthitchance'] = spacecrafthitchance.group(1) + "%"
     
     # Extract Prioritized Type
-    type_match = re.search(r'Prioritized Type.* ([\w\s][^\n]+)', text)
+    type_match = re.search(r'Type.* ([\w\s][^\n]+)', text)
     if type_match:
         template['prioritizedtype'] = type_match.group(1).strip()
     
     # Extract Prioritized Proximity
-    prox_match = re.search(r'Prioritized Proximity.* ([\w\s][^\n]+)', text)
+    prox_match = re.search(r'Prox.* ([\w\s][^\n]+)', text)
     if prox_match:
         template['prioritizedprox'] = prox_match.group(1).strip()
     
