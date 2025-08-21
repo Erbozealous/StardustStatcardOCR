@@ -1,0 +1,9 @@
+Pillow  # PIL
+pytesseract
+beautifulsoup4  # bs4
+requests
+numpy
+pandas
+tkinter
+pytest
+sphinx
