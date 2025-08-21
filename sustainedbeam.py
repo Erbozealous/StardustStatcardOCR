@@ -92,14 +92,68 @@ def processSustainedBeam(text):
         
 
     # shielddamage
-    shielddamage = re.search(r'Multi[^0-9\n]*(\d+\.?\d*)[^0-9\n]*$', text, re.MULTILINE)
+    shielddamage = re.search(r'Da[^0-9\n]+Multi[^0-9\n@]*([@\d]+\.?[\d@]*)[^0-9\n]*$', text, re.MULTILINE)
     if shielddamage:
         template['shielddamage'] = shielddamage.group(1) + "x"
+        template['shielddamage'] = re.sub(r"@", "0", template['shielddamage'])
 
     # shieldbypass
     shieldbypass = re.search(r'Gate.*(No|Yes)', text)
     if shieldbypass:
         template['shieldbypass'] = shieldbypass.group(1)
+
+
+    # Healing section
+    
+    
+    # hmaxrange
+    healregex = r'Hea[^0-9\n]*In[\D\d]+'
+    # We will preface all healing regexes with this
+    
+    hmaxrange = re.search(healregex + r'Dur\D+Range[^0-9\n]*([\d@i]+)', text)
+    if hmaxrange:
+        template['hmaxrange'] = re.sub(r"@", "0", hmaxrange.group(1))
+        template['hmaxrange'] = re.sub(r"i", "1", template['hmaxrange']) + " s"
+        
+        
+    # htotal
+    htotal = re.search(healregex + r'Tot\D+Dur\D+([\d@i]+\.?[\d@i]+)', text)
+    if htotal:
+        template['htotal'] = re.sub(r"@", "0", htotal.group(1))
+        template['htotal'] = re.sub(r"i", "1", template['htotal']) + " s"
+
+    # damage
+    healing = re.search(r'^Healing[^0-9\n]*([\d@i]+)[^0-9\n]*([\d@i]+)', text, re.MULTILINE)
+    if(healing):
+        template['healing'] = healing.group(1) + " HPS"
+        if(healing.group(2)): template['healing'] += " - " + healing.group(2) + " HPS"
+        template['healing'] =  re.sub(r"@", "0", template['healing'])
+
+
+    # starthealing
+    starthealing = re.search(r'Tot[^0-9\n]*Heal[^0-9\n]*Up\D+([\d@]+\.?[\d@]*)[^0-9\n]*([\d@]+\.?[\d@]*)?', text, re.MULTILINE)
+    if starthealing:
+        template['starthealing'] = starthealing.group(1)
+        if starthealing.group(2): template['starthealing'] += " - " + starthealing.group(2)
+        template['starthealing'] = re.sub(r"@", "0", template['starthealing'])
+
+    endhealing = re.search(r'Tot[^0-9\n]+Hea[^0-9\n]+Max\D+([\d@]+\.?[\d@]*)[^0-9\n]*([\d@]+\.?[\d@]*)?', text, re.MULTILINE)
+    if endhealing:
+        template['endhealing'] = endhealing.group(1)
+        if endhealing.group(2): template['endhealing'] += " - " + endhealing.group(2)
+        template['endhealing'] = re.sub(r"@", "0", template['endhealing'])
+        
+
+    # shieldhealing
+    shieldhealing = re.search(r'He[^0-9\n]+Multi[^0-9\n]*(\d+\.?\d*)[^0-9\n]*$', text, re.MULTILINE)
+    if shieldhealing:
+        template['shieldhealing'] = shieldhealing.group(1) + "x"
+
+    # hshieldbypass
+    hshieldbypass = re.search(r'Hea[^0-9\n]*In[\D\d]+Gate.*(No|Yes)', text)
+    if hshieldbypass:
+        template['hshieldbypass'] = hshieldbypass.group(1)
+
 
     # objectives
     objectives = re.search(r'Objective\D*(No|Yes)', text)

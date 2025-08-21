@@ -147,6 +147,7 @@ def process_image_to_template(image, weapon_type='pointdefense'):
 
     # Because the screenshots taken are usually quite small, simply scaling it up increases the OCR accuracy tremendously
     if image.height < 600 and image.width < 600:
+        print("Image size:" + str(image.size) + " - Scaling up for better OCR accuracy") 
         image = image.resize((image.width * 2, image.height * 2), Image.Resampling.BILINEAR)
 
     
