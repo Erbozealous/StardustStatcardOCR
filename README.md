@@ -28,7 +28,7 @@ Simple OCR processing to read the statcards of weapons for the game Project Star
 Download all files by clicking the green "<> Code" button and selecting "Download ZIP"
 
 Install the needed modules with
-```
+```bash
 pip install -r requirements.txt
 ```
 
@@ -37,7 +37,7 @@ Tesseract can be installed with any package manager on Linux. For MacOS it may r
 ### Executing program
 
 Start the script with
-```
+```bash
 python main.py
 ```
 
