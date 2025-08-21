@@ -531,13 +531,24 @@ def main():
             theme = settings.get('theme', 'dark')
     except FileNotFoundError:
         theme = 'dark'  # Default to dark if settings file doesn't exist
+        
+        
     # Set the theme
-    root.tk.call("source", "theme/sv.tcl")
-    style = ttk.Style(master=root)
-    style.theme_use(f"sun-valley-{theme}")
+    try:
+        with open("theme/sv.tcl", 'r') as f:
+            root.tk.call("source", f.name)
+            style = ttk.Style(master=root)
+            style.theme_use(f"sun-valley-{theme}")
+    except Exception as e:
+        print(f"Error setting theme: {str(e)}")  
     
-    photo = PhotoImage(file="assets/icon.png")
-    root.iconphoto(False, photo) 
+    # Set photo
+    try:
+        with open("assets/icon.png", 'r') as f:
+            photo = PhotoImage(file=f.name)
+            root.iconphoto(False, photo) 
+    except Exception as e:
+        print(f"Error loading icon: {str(e)}")
 
     app = WeaponStatsGUI(root)
     root.mainloop()
