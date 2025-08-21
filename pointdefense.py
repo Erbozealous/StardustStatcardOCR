@@ -22,6 +22,10 @@ def processPointDefense(text):
     lines = text.split('\n')
     weapon_name = re.sub(r"@", "0", next((line for line in lines if line.strip()), "Unknown Weapon"))
     
+    # Then exclude the first line from further processing
+    text = '\n'.join(lines[1:])
+    
+    
     # Process text and fill template
     # Look for specific patterns in the text
     

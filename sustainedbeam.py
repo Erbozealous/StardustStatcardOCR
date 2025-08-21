@@ -35,6 +35,9 @@ def processSustainedBeam(text):
     lines = text.split('\n')
     weapon_name = re.sub(r"@", "0", next((line for line in lines if line.strip()), "Unknown Weapon"))
 
+    # Then exclude the first line from further processing
+    text = '\n'.join(lines[1:])
+
     # burst
     burst = re.search(r'Bursts\D*(\d+)', text)
     if burst:
