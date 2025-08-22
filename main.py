@@ -256,7 +256,7 @@ class SettingsWindow:
         self.psm_var = tk.StringVar()
         psm_combo = ttk.Combobox(ocr_frame, textvariable=self.psm_var, 
                                 values=self.psm_values, state="readonly")
-        psm_combo.pack(fill="x", padx=5, pady=2)
+        psm_combo.pack(fill="x", padx=5, pady=(5, 8))
     
     def create_image_settings(self):
         image_frame = ttk.LabelFrame(self.window, text="Image Processing")
