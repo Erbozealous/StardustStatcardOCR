@@ -127,7 +127,7 @@ class WeaponStatsGUI:
                 if image is None:
                     raise ValueError("No image found in clipboard (" + platform.system() + ")")
                 
-                result = process_image_to_template(image, self.weapon_type.get())
+                result = process_image_to_template(image, self.weapon_type.get(), self.settings)
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
                 self.status_var.set(self.weapon_type.get() +  " processed successfully")
@@ -170,7 +170,7 @@ class WeaponStatsGUI:
 
         except Exception as e:
             messagebox.showerror("Error", f"Error: {str(e)}")
-            self.status_var.set("Error processing clipboard")
+            self.status_var.set("Error processing clipboard (" + platform.system() + ")")
 
         finally:
             if temp_path and os.path.exists(temp_path):
@@ -422,6 +422,8 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None):
                     f"The weapon '{weapon_name}' already exists in the database."
                 )
             print(f"Weapon '{weapon_name}' already exists in the database.")
+        else:
+            print(f"Weapon '{weapon_name}' does not exist in the database.")
     
     if weapon_type == "pointdefense":
         output = pointdefense.processPointDefense(text)
