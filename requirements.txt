@@ -2,7 +2,7 @@ Pillow
 pytesseract
 beautifulsoup4
 requests
-numpym
+numpy
 pandas
 pytest
 sphinx
