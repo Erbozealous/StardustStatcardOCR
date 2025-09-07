@@ -12,6 +12,8 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import json
+import cv2
+import numpy as np
 
 
 
@@ -42,7 +44,10 @@ class WeaponStatsGUI:
                 'grayscale': False,
                 'save_images': False,
                 'existing_weapon': True,
-                'theme': 'dark'
+                'theme': 'dark',
+                'use_adaptive_threshold': False,
+                'threshold': 127,
+                'threhold_max': 255
             }
         
         # Weapon type selection frame
@@ -183,7 +188,7 @@ class SettingsWindow:
     def __init__(self, parent, current_settings):
         self.window = tk.Toplevel(parent)
         self.window.title("OCR Settings")
-        self.window.geometry("400x550")
+        self.window.geometry("400x650")
         self.window.transient(parent)  # Make window modal
         self.window.grab_set()
         
@@ -224,6 +229,11 @@ class SettingsWindow:
         
         # Set grayscale
         self.grayscale_var.set(self.current_settings.get('grayscale', False))
+        
+        # Set adaptive threshold options
+        self.adaptive_threshold_var.set(self.current_settings.get('use_adaptive_threshold', False))
+        self.block_size_var.set(str(self.current_settings.get('threshold', 127)))
+        self.c_value_var.set(str(self.current_settings.get('threshold_max', 255)))
         
         # Set save images
         self.save_images_var.set(self.current_settings.get('save_images', False))
@@ -289,6 +299,25 @@ class SettingsWindow:
         ttk.Checkbutton(image_options_frame, text="Convert to grayscale before processing", 
                        variable=self.grayscale_var).pack(anchor="w", padx=5, pady=2)
         
+        # Adaptive thresholding
+        self.adaptive_threshold_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(image_options_frame, text="Use adaptive thresholding", 
+                       variable=self.adaptive_threshold_var).pack(anchor="w", padx=5, pady=2)
+        
+        # Adaptive threshold parameters
+        threshold_frame = ttk.Frame(image_options_frame)
+        threshold_frame.pack(fill="x", padx=5, pady=4)
+        
+        # Block size
+        ttk.Label(threshold_frame, text="Threshold:").pack(side="left")
+        self.block_size_var = tk.StringVar(value="127")
+        ttk.Entry(threshold_frame, textvariable=self.block_size_var, width=5).pack(side="left", padx=5)
+        
+        # C value
+        ttk.Label(threshold_frame, text="Threshold Max").pack(side="left", padx=(10,0))
+        self.c_value_var = tk.StringVar(value="255")
+        ttk.Entry(threshold_frame, textvariable=self.c_value_var, width=5).pack(side="left", padx=5)
+        
         # Save processed images
         self.save_images_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(image_options_frame, text="Save processed images to a separate folder", 
@@ -338,7 +367,10 @@ class SettingsWindow:
                 'grayscale': self.grayscale_var.get(),
                 'save_images': self.save_images_var.get(),
                 'existing_weapon': self.existing_weapon_var.get(),
-                'theme': self.theme_var.get() if hasattr(self, 'theme_var') else 'dark'
+                'theme': self.theme_var.get() if hasattr(self, 'theme_var') else 'dark',
+                'use_adaptive_threshold': self.adaptive_threshold_var.get(),
+                'threshold': int(self.block_size_var.get()),
+                'threshold_max': int(self.c_value_var.get())
             }
             # Save settings to a JSON file
             with open('settings.json', 'w') as f:
@@ -362,9 +394,38 @@ class SettingsWindow:
 def process_image_to_template(image, weapon_type='pointdefense', settings=None):
     
     # Convert image to grayscale if needed
-    if settings['grayscale']:
+    if settings['grayscale'] or settings.get('use_adaptive_threshold', False):
         image = image.convert("L")
         print("Converted image to grayscale")
+
+    # Apply thresholding if enabled
+    if settings.get('use_adaptive_threshold', False):
+        # Convert PIL image to numpy array for OpenCV
+        img_array = np.array(image)
+        
+        # Enhance contrast using CLAHE (Contrast Limited Adaptive Histogram Equalization)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        img_array = clahe.apply(img_array)
+        
+        # Simple binary threshold - for clean UI screenshots this works better than adaptive
+
+        _, thresh = cv2.threshold(
+            img_array,
+            settings.get('threshold', 127),  # threshold value
+            settings.get('threshold_max', 255),  # max value
+            cv2.THRESH_BINARY
+        )
+        
+        # Add slight blur to smooth any rough edges
+        thresh = cv2.GaussianBlur(thresh, (3,3), 0)
+        
+        # Sharpen the result
+        kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+        thresh = cv2.filter2D(thresh, -1, kernel)
+        
+        # Convert back to PIL Image
+        image = Image.fromarray(thresh)
+        print("Applied optimized thresholding for UI screenshots")
 
     # Scale up small images for better OCR accuracy if enabled
     min_size = settings.get('min_size', 600)
