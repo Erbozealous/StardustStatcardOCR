@@ -1,24 +1,24 @@
 import re
 def processLaser(text):
     template = {
-                'burst': '',
-                'burstsshots': '',
-                'burstsdelay': '',
-                'modrange': '',
-                'startdamage': '',
-                'enddamage': '',
-                'damage': '',
-                'shielddamage': '',
-                'shieldbypass': '',
-                'objectives': '',
-                'charge': '',
-                'reload': '',
-                'range': '',
-                'MV': '',
-                'dispersion': '',
-                'dispersionmax': '',
-                'autoaim': '',
-            }
+        'burst': '',
+        'burstsshots': '',
+        'burstsdelay': '',
+        'modrange': '',
+        'startdamage': '',
+        'enddamage': '',
+        'damage': '',
+        'shielddamage': '',
+        'shieldbypass': '',
+        'objectives': '',
+        'charge': '',
+        'reload': '',
+        'range': '',
+        'MV': '',
+        'dispersion': '',
+        'dispersionmax': '',
+        'autoaim': '',
+    }
     
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')
