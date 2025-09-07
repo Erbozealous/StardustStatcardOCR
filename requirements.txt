@@ -1,9 +1,8 @@
-Pillow  # PIL
+Pillow
 pytesseract
-beautifulsoup4  # bs4
+beautifulsoup4
 requests
-numpy
+numpym
 pandas
-tkinter
 pytest
 sphinx
