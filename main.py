@@ -1,28 +1,23 @@
 # Import libraries
-import pytesseract
-from PIL import Image, ImageGrab, ImageFilter
 import tkinter as tk
 from tkinter import ttk, filedialog, scrolledtext, PhotoImage, messagebox
+from PIL import Image, ImageGrab, ImageFilter
 import subprocess
 import tempfile
 import os
 import platform
-import time
 import requests
 from bs4 import BeautifulSoup
 import re
 import json
-import cv2
-import numpy as np
 
 
 
-# Import compartments
+import ocr
 import pointdefense
 import laser
 import missile
 import sustainedbeam
-
 
 class WeaponStatsGUI:
     def __init__(self, root):
@@ -390,78 +385,10 @@ class SettingsWindow:
         self.settings_saved = False
         self.window.destroy()
 
-
 def process_image_to_template(image, weapon_type='pointdefense', settings=None):
-    
-    # Convert image to grayscale if needed
-    if settings['grayscale'] or settings.get('use_adaptive_threshold', False):
-        image = image.convert("L")
-        print("Converted image to grayscale")
 
-    # Apply thresholding if enabled
-    if settings.get('use_adaptive_threshold', False):
-        # Convert PIL image to numpy array for OpenCV
-        img_array = np.array(image)
-        
-        # Enhance contrast using CLAHE (Contrast Limited Adaptive Histogram Equalization)
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-        img_array = clahe.apply(img_array)
-        
-        # Simple binary threshold - for clean UI screenshots this works better than adaptive
+    text = ocr.scan_image(image, weapon_type, settings)
 
-        _, thresh = cv2.threshold(
-            img_array,
-            settings.get('threshold', 127),  # threshold value
-            settings.get('threshold_max', 255),  # max value
-            cv2.THRESH_BINARY
-        )
-        
-        # Add slight blur to smooth any rough edges
-        thresh = cv2.GaussianBlur(thresh, (3,3), 0)
-        
-        # Sharpen the result
-        kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
-        thresh = cv2.filter2D(thresh, -1, kernel)
-        
-        # Convert back to PIL Image
-        image = Image.fromarray(thresh)
-        print("Applied optimized thresholding for UI screenshots")
-
-    # Scale up small images for better OCR accuracy if enabled
-    min_size = settings.get('min_size', 600)
-    if settings['auto_scale'] and (image.height < min_size or image.width < min_size):
-        scale_factor = settings['scale_factor']
-        print(f"Image size: {image.size} - Scaling up by factor {scale_factor} for better OCR accuracy (minimum size: {min_size}px)") 
-        new_width = int(image.width * scale_factor)
-        new_height = int(image.height * scale_factor)
-        image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-        print(f"Scaled image size: {image.size}")
-    
-    # Save the processed image if enabled
-    if settings.get('save_images', False):
-        try:
-            # Create processed_images directory if it doesn't exist
-            os.makedirs('processed_images', exist_ok=True)
-            
-            # Generate a unique filename with timestamp
-            timestamp = time.strftime('%Y%m%d_%H%M%S')
-            filename = f'processed_images/processed_{timestamp}.png'
-            
-            # Save the image
-            image.save(filename)
-            print(f"Saved processed image to: {filename}")
-        except Exception as e:
-            print(f"Error saving processed image: {str(e)}")
-    
-    # Extract text from image using pytesseract with configured PSM mode
-    config = f"--psm {settings['psm_mode']}"
-    text = pytesseract.image_to_string(image, config=config)
-    print("Processing " + weapon_type)
-    print("Extracted text from image:")
-    print("---START OF TEXT---")
-    print(text)
-    print("---END OF TEXT---")
-    
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')
     weapon_name = next((line for line in lines if line.strip()), "Unknown Weapon")
@@ -496,10 +423,11 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None):
         output = sustainedbeam.processSustainedBeam(text)
     else:
         raise ValueError(f"Unknown weapon type: {weapon_type}")
-    
-    
-    
+
     return output
+
+
+
 
 def check_weapon_exists(weapon_name, weapon_type='pointdefense'):
     """
@@ -607,7 +535,7 @@ def main():
     
     # Set photo
     try:
-        with open("assets/icon.png", 'r') as f:
+        with open("theme/icon.png", 'r') as f:
             photo = PhotoImage(file=f.name)
             root.iconphoto(False, photo) 
     except Exception as e:
