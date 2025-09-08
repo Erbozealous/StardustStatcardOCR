@@ -1,5 +1,6 @@
 from PIL import Image, ImageGrab, ImageFilter
 import pytesseract
+from pytesseract import Output
 import numpy as np
 import cv2
 import os
@@ -44,10 +45,11 @@ def scan_image(image, weapon_type='pointdefense', settings=None):
         print("Applied optimized thresholding for UI screenshots")
 
     # Scale up small images for better OCR accuracy if enabled
+    print(f"Image size: {image.size}")
     min_size = settings.get('min_size', 600)
     if settings['auto_scale'] and (image.height < min_size or image.width < min_size):
         scale_factor = settings['scale_factor']
-        print(f"Image size: {image.size} - Scaling up by factor {scale_factor} for better OCR accuracy (minimum size: {min_size}px)") 
+        print(f"Scaling up by factor {scale_factor}") 
         new_width = int(image.width * scale_factor)
         new_height = int(image.height * scale_factor)
         image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
@@ -77,5 +79,6 @@ def scan_image(image, weapon_type='pointdefense', settings=None):
     print("---START OF TEXT---")
     print(text)
     print("---END OF TEXT---")
-    
+
+
     return text
