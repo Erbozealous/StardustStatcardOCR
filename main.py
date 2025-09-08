@@ -400,7 +400,7 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None):
     weapon_name = next((line for line in lines if line.strip()), "Unknown Weapon")
     
     # Check if weapon already exists in the database
-    if( settings['existing_weapon'] ):
+    if settings is not None and settings.get('existing_weapon', False):
         exists, existing_entry = check_weapon_exists(weapon_name, weapon_type)
         if exists:
             if existing_entry:
@@ -451,7 +451,9 @@ def check_weapon_exists(weapon_name, weapon_type='pointdefense'):
             'pointdefense': 'https://projectstardustwiki.miraheze.org/wiki/Module:PointDefense/Data',
             'laser': 'https://projectstardustwiki.miraheze.org/wiki/Module:Laser/Data',
             'missile': 'https://projectstardustwiki.miraheze.org/wiki/Module:Missile/Data',
-            'beam': 'https://projectstardustwiki.miraheze.org/wiki/Module:SustainBeam/Data'
+            'beam': 'https://projectstardustwiki.miraheze.org/wiki/Module:SustainBeam/Data',
+            'fighter' : 'https://projectstardustwiki.miraheze.org/wiki/Module:Fighter/Data',
+            'fighterweapon' : 'https://projectstardustwiki.miraheze.org/wiki/Module:FighterWeapon/Data'
         }
         
         # Get the appropriate URL

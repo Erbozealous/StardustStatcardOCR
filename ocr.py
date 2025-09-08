@@ -9,7 +9,18 @@ import time
 
 
 def scan_image(image, weapon_type='pointdefense', settings=None):
-    
+    if settings is None:
+        settings = {
+            'grayscale': True,
+            'use_adaptive_threshold': True,
+            'threshold': 127,
+            'threshold_max': 255,
+            'auto_scale': True,
+            'scale_factor': 2,
+            'min_size': 600,
+            'psm_mode': 6,  # Assume a single uniform block of text
+            'save_images': False,
+        }
     # Convert image to grayscale if needed
     if settings['grayscale'] or settings.get('use_adaptive_threshold', False):
         image = image.convert("L")
