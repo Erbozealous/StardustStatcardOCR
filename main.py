@@ -19,6 +19,7 @@ import laser
 import missile
 import sustainedbeam
 import fighter
+import fighterweapon
 
 class WeaponStatsGUI:
     def __init__(self, root):
@@ -65,6 +66,8 @@ class WeaponStatsGUI:
         ttk.Radiobutton(radio_frame, text="Sustained Beam", value="beam", 
                         variable=self.weapon_type).pack(side="left", padx=5)
         ttk.Radiobutton(radio_frame, text="Fighter", value="fighter", 
+                        variable=self.weapon_type).pack(side="left", padx=5)
+        ttk.Radiobutton(radio_frame, text="Fighter Weapon", value="fighterweapon", 
                         variable=self.weapon_type).pack(side="left", padx=5)
         
         # Input frame
@@ -426,6 +429,8 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None):
         output = sustainedbeam.processSustainedBeam(text)
     elif weapon_type == "fighter":
         output = fighter.processFighter(text)
+    elif weapon_type == "fighterweapon":
+        output = fighterweapon.processFighterWeapon(text)
     else:
         raise ValueError(f"Unknown weapon type: {weapon_type}")
     
