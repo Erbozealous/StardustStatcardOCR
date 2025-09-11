@@ -28,7 +28,7 @@ class OCR:
         self.label_to_char = {i: c for i, c in enumerate(self.char_list)}
 
         # Load ONNX model
-        self.ort_session = ort.InferenceSession(self.onnx_path, providers=["CPUExecutionProvider"])
+        self.ort_session = ort.InferenceSession(self.onnx_path, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
 
 
     def load_default_settings(self):
@@ -74,7 +74,8 @@ class OCR:
 
                 x, preprocessed_img = self.preprocess_char(char_img)
                 input_name = self.ort_session.get_inputs()[0].name
-                outputs = self.ort_session.run(None, {input_name: x})
+                output_name = self.ort_session.get_outputs()[0].name
+                outputs = self.ort_session.run([output_name], {input_name: x})
                 output_arr = np.array(outputs[0])
                 pred_idx = int(np.argmax(output_arr, axis=1)[0])
                 line_str += self.label_to_char[pred_idx]
