@@ -145,12 +145,6 @@ class WeaponStatsGUI:
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
                 self.status_var.set(self.weapon_type.get() + " processed successfully")
-                
-                image = image.convert('L')
-                result = process_image_to_template(image, self.weapon_type.get(), self.settings)
-                self.output_text.delete(1.0, tk.END)
-                self.output_text.insert(tk.END, result)
-                self.status_var.set(self.weapon_type.get() +  " processed successfully")
 
             else:
                 # Wayland path (Linux)

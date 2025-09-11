@@ -27,8 +27,13 @@ class OCR:
         self.char_list = sorted(folder_to_char.values())
         self.label_to_char = {i: c for i, c in enumerate(self.char_list)}
 
-        # Load ONNX model
-        self.ort_session = ort.InferenceSession(self.onnx_path, providers=['CPUExecutionProvider'])
+
+        # Load the ONNX model
+        sess_options = ort.SessionOptions()
+        sess_options.log_severity_level = 4  # suppress warnings
+        self.ort_session = ort.InferenceSession(self.onnx_path, providers=['CPUExecutionProvider'], sess_options=sess_options)
+
+
 
 
     def load_default_settings(self):
