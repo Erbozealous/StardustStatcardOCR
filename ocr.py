@@ -30,6 +30,10 @@ class OCR:
         # Load ONNX model
         self.ort_session = ort.InferenceSession(self.onnx_path)
 
+        # Set ONNX to cpu to supress warnings
+        self.ort_session = ort.InferenceSession("STARDUST.onnx", providers=["CPUExecutionProvider"])
+
+
     def load_default_settings(self):
         return {
             'verbose': 1,
