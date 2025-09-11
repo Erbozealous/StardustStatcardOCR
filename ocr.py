@@ -73,7 +73,8 @@ class OCR:
                     continue
 
                 x, preprocessed_img = self.preprocess_char(char_img)
-                outputs = self.ort_session.run(None, {"input": x})
+                input_name = self.ort_session.get_inputs()[0].name
+                outputs = self.ort_session.run(None, {input_name: x})
                 output_arr = np.array(outputs[0])
                 pred_idx = int(np.argmax(output_arr, axis=1)[0])
                 line_str += self.label_to_char[pred_idx]
