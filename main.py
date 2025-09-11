@@ -1,7 +1,7 @@
 # Import libraries
 import tkinter as tk
 from tkinter import ttk, filedialog, scrolledtext, PhotoImage, messagebox
-from PIL import Image, ImageGrab, ImageFilter
+from PIL import Image, ImageGrab
 import subprocess
 import tempfile
 import os
@@ -371,7 +371,7 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None, 
     if onnx_processor is None:
         raise ValueError("ONNX processor must be provided")
     
-    text = onnx_processor.ocr_segmented(image, weapon_type, settings)
+    text = onnx_processor.ocr_segmented(image, settings)
 
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')

@@ -1,11 +1,6 @@
-Pillow
-pytesseract
-beautifulsoup4
-requests
-numpy
-pandas
-pytest
-sphinx
-opencv-python
-onnxruntime
-torchvision
+opencv-python # Primary image processing
+numpy # Array manipulation
+Pillow # Standard image processing
+beautifulsoup4 # Allows the program to check duplicates in the online database
+requests # Ditto
+onnxruntime # OCR
