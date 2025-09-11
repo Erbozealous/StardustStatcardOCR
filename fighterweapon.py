@@ -54,12 +54,12 @@ def processFighterWeapon(text):
     # shipfiringrange
     shipfiringrange = re.search(againstShipSection + r'Fir[^0-9\n]+([\d]+)', text)
     if shipfiringrange:
-        template['shipfiringrange'] = shipfiringrange.group(1)
+        template['shipfiringrange'] = shipfiringrange.group(1) + " m"
     
     # shipmaxrange
     shipmaxrange = re.search(againstShipSection + r'Max[^0-9\n]+([\d]+)', text)
     if shipmaxrange:
-        template['shipmaxrange'] = shipmaxrange.group(1)
+        template['shipmaxrange'] = shipmaxrange.group(1) + " m"
 
     # shipactive
     shipactive = re.search(againstShipSection + r'Act[^0-9\n]+ity:? ([^\n]*)', text)
@@ -120,12 +120,12 @@ def processFighterWeapon(text):
      # shipfiringrange
     fighterfiringrange = re.search(fighterSection + r'Fir[^0-9\n]+([\d]+)', text)
     if fighterfiringrange:
-        template['fighterfiringrange'] = fighterfiringrange.group(1)
+        template['fighterfiringrange'] = fighterfiringrange.group(1) + " m"
     
     # shipmaxrange
     fightermaxrange = re.search(fighterSection + r'Max[^0-9\n]+([\d]+)', text)
     if fightermaxrange:
-        template['fightermaxrange'] = fightermaxrange.group(1)
+        template['fightermaxrange'] = fightermaxrange.group(1) + " m"
 
     # shipactive
     fighteractive = re.search(fighterSection + r'Act[^0-9\n]+ity:? ([^\n]*)', text)
