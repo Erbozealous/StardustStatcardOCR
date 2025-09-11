@@ -80,7 +80,7 @@ def processFighter(text):
         template['launch'] = launch.group(1).strip()
 
     # weapons
-    weapons = re.search(r'Armaments[\n ]*([\w\s]+ >).*\n([\w\s][^\n]+ >)?.*\n?([\w\s][^\n]+ >)?', text)
+    weapons = re.search(r'Armaments[\n ]*(.+ >).*\n(.+ >)?.*\n?(.+ >)?', text)
     
     
     # prune last 2 chars from weapons if they exist
