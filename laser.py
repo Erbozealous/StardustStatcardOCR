@@ -22,7 +22,7 @@ def processLaser(text):
     
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')
-    weapon_name = re.sub(r"@", "0", next((line for line in lines if line.strip()), "Unknown Weapon"))
+    weapon_name = next((line for line in lines if line.strip()), "Unknown Weapon")
 
     # Then exclude the first line from further processing
     text = '\n'.join(lines[1:])
@@ -38,9 +38,9 @@ def processLaser(text):
         template['burstsshots'] = burstsshots.group(1) + " x"
 
     # burstsdelay
-    burstsdelay = re.search(r'Delay Between Bursts[^@\d]*([\d@]+\.?\d*)', text)
+    burstsdelay = re.search(r'Delay Between Bursts[^\d]*([\d]+\.?\d*)', text)
     if burstsdelay:
-        template['burstsdelay'] = re.sub(r"@", "0", burstsdelay.group(1)) + " s"
+        template['burstsdelay'] = burstsdelay.group(1) + " s"
 
     # modrange
     modrange = re.search(r'Modifier Ranges\D+(\d+\.?\d*)\D+(\d+\.?\d*)', text)
@@ -57,9 +57,9 @@ def processLaser(text):
         template['enddamage'] = enddamage.group(1) + " - " + enddamage.group(2)
     
     # damage
-    damage = re.search(r'(?!.*Info)Da[nm]age\D+([\d@]+\.?[\d@]*)\D+([\d@]+\.?[\d@]*)$', text, re.MULTILINE)
+    damage = re.search(r'(?!.*Info)Da[nm]age\D+([\d]+\.?[\d]*)\D+([\d]+\.?[\d]*)$', text, re.MULTILINE)
     if(damage):
-       template['damage'] =  re.sub(r"@", "0", damage.group(1) + " - " + damage.group(2))
+       template['damage'] =  damage.group(1) + " - " + damage.group(2)
         
 
     # shielddamage
@@ -80,15 +80,15 @@ def processLaser(text):
     # charge
     charge = re.search(r'Charge\D*(\d*\.?\d*)', text)
     if charge:
-        template['charge'] = re.sub(r"@", "0", charge.group(1)) + " s"
+        template['charge'] = charge.group(1) + " s"
 
     # reload
     reload = re.search(r'^Reload\D*(\d*\.?\d*)[^0-9\r\n]*(\d*\.?\d*)?', text, re.MULTILINE)
     if reload:
         if reload.group(2):
-            template['reload'] = re.sub(r"@", "0", reload.group(1) + " s - " + reload.group(2) + " s" )
+            template['reload'] = reload.group(1) + " s - " + reload.group(2) + " s" 
         else:
-            template['reload'] = re.sub(r"@", "0", reload.group(1)) + " s"
+            template['reload'] = reload.group(1) + " s"
 
     # range
     range_match = re.search(r'Max\D*(\d*\.?\d*)', text)
@@ -104,14 +104,14 @@ def processLaser(text):
             template['MV'] = muzzlevelocity.group(1) + " m/s"
     
     # dispersion
-    dispersion = re.search(r'Angle[^@\d]*([\d@]+\.?\d*)', text)
+    dispersion = re.search(r'Angle[^\d]*([\d]+\.?\d*)', text)
     if dispersion:
-        template['dispersion'] = re.sub(r"@", "0", dispersion.group(1)) + " degrees"
+        template['dispersion'] = dispersion.group(1) + " degrees"
 
     # dispersionmax
-    dispersionmax = re.search(r'Dispersion At[^@\d]*([\d@]+\.?\d*)', text)
+    dispersionmax = re.search(r'Dispersion At[^\d]*([\d]+\.?\d*)', text)
     if dispersionmax:
-        template['dispersionmax'] = re.sub(r"@", "0", dispersionmax.group(1)) + " m"
+        template['dispersionmax'] = dispersionmax.group(1) + " m"
     
     # autoaim
     autoaim = re.search(r'Aim', text)

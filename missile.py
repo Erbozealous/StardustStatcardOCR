@@ -22,8 +22,7 @@ def processMissile(text):
 
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')
-    weapon_name = re.sub(r"@", "0", next((line for line in lines if line.strip()), "Unknown Weapon"))
-    
+    weapon_name = next((line for line in lines if line.strip()), "Unknown Weapon")
     # Then exclude the first line from further processing
     text = '\n'.join(lines[1:])
     
@@ -33,25 +32,24 @@ def processMissile(text):
         template['burst'] = burst.group(1) + " x"
     
     # burstsshots
-    burstsshots = re.search(r'Shots Per Burst[^0-9i@]*([\di@]+).*', text)
+    burstsshots = re.search(r'Shots Per Burst[^0-9i]*([\di]+).*', text)
     if burstsshots:
-        template['burstsshots'] = re.sub(r"i", "1", burstsshots.group(1))
-        template['burstsshots'] = re.sub(r"@", "0", template['burstsshots']) + " x"
+        template['burstsshots'] = burstsshots.group(1) + " x"
         
 
     # burstsdelay
-    burstsdelay = re.search(r'Delay Between Bursts[^@\d]*([\d@]+\.?\d*)', text)
+    burstsdelay = re.search(r'Delay Between Bursts[^\d]*([\d]+\.?\d*)', text)
     if burstsdelay:
-        template['burstsdelay'] = re.sub(r"@", "0", burstsdelay.group(1))
+        template['burstsdelay'] = burstsdelay.group(1)
         # If number starts with 0 we add a decimal point
         if template['burstsdelay'].startswith("0"):
             template['burstsdelay'] = "0." + template['burstsdelay'][1:] + " s"
 
 
     # damage
-    damage = re.search(r'(?!.*Info)Da[nm]age\D+([\d@]+\.?[\d@]*)\D+([\d@]+\.?[\d@]*)$', text, re.MULTILINE)
+    damage = re.search(r'(?!.*Info)Da[nm]age\D+([\d]+\.?[\d]*)\D+([\d]+\.?[\d]*)$', text, re.MULTILINE)
     if(damage):
-       template['damage'] =  re.sub(r"@", "0", damage.group(1) + " - " + damage.group(2))
+       template['damage'] =  damage.group(1) + " - " + damage.group(2)
         
 
     # shielddamage
@@ -65,16 +63,15 @@ def processMissile(text):
         template['shieldbypass'] = shieldbypass.group(1)
 
     # ASW
-    asw = re.search(r'Lock[^0-9@i]*([\di@]*)', text)
+    asw = re.search(r'Lock[^0-9i]*([\di]*)', text)
     if asw:
-        template['ASW'] = re.sub(r"@", "0", asw.group(1))
-        template['ASW'] = re.sub(r"i", "1" , template['ASW']) + " m"
+        template['ASW'] = asw.group(1) + " m"
 
 
     # HP
-    missileHP = re.search(r'HP[^0-9\n\r]*([\d@]+)', text)
+    missileHP = re.search(r'HP[^0-9\n\r]*([\d]+)', text)
     if missileHP:
-        template['HP'] = re.sub(r"@", "0", missileHP.group(1)) + " HP"
+        template['HP'] = missileHP.group(1) + " HP"
 
     # disruption
     disruption = re.search(r'mune.*(No|Yes)', text)
@@ -89,15 +86,15 @@ def processMissile(text):
     # charge
     charge = re.search(r'^Charge\D*(\d*\.?\d*)', text, re.MULTILINE)
     if charge:
-        template['charge'] = re.sub(r"@", "0", charge.group(1)) + " s"
+        template['charge'] = charge.group(1) + " s"
 
     # reload
     reload = re.search(r'^Reload\D*(\d*\.?\d*)[^0-9\r\n]*(\d*\.?\d*)?', text, re.MULTILINE)
     if reload:
         if reload.group(2):
-            template['reload'] = re.sub(r"@", "0", reload.group(1) + " s - " + reload.group(2) + " s" )
+            template['reload'] = reload.group(1) + " s - " + reload.group(2) + " s"
         else:
-            template['reload'] = re.sub(r"@", "0", reload.group(1)) + " s"
+            template['reload'] = reload.group(1) + " s"
 
     # range
     range_match = re.search(r'Max\D*(\d*\.?\d*)', text)

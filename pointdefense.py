@@ -20,7 +20,7 @@ def processPointDefense(text):
     }
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')
-    weapon_name = re.sub(r"@", "0", next((line for line in lines if line.strip()), "Unknown Weapon"))
+    weapon_name = next((line for line in lines if line.strip()), "Unknown Weapon")
     
     # Then exclude the first line from further processing
     text = '\n'.join(lines[1:])
@@ -71,7 +71,7 @@ def processPointDefense(text):
 
 
     # Missile Accuracy
-    missileaccuracy = re.search(r'Missile Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
+    missileaccuracy = re.search(r'Missile Accuracy Values.*\n(.+km).*\n(.+km)?.*\n(.+km)?', text)
     if missileaccuracy:
         missile_mod_string = missileaccuracy.group(1) + " <br> " + missileaccuracy.group(2)
         if missileaccuracy.group(3): missile_mod_string+=" <br> " + missileaccuracy.group(3)
@@ -81,7 +81,7 @@ def processPointDefense(text):
 
 
      # spacecraftaccuracy
-    spacecraftaccuracy = re.search(r'Spacecraft Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text)
+    spacecraftaccuracy = re.search(r'Spacecraft Accuracy Values.*\n(.+km).*\n(.+km)?.*\n(.+km)?', text)
     if spacecraftaccuracy:
         space_mod_string = spacecraftaccuracy.group(1) + " <br> " + spacecraftaccuracy.group(2)
         if spacecraftaccuracy.group(3): space_mod_string+=" <br> " + spacecraftaccuracy.group(3)
@@ -89,12 +89,6 @@ def processPointDefense(text):
         # resub again to replace @ with 0
         template['spacecraftaccuracy'] = re.sub(r"@", "0", template['spacecraftaccuracy'])
 
-    # Extract Accuracy
-    accuracy = re.search(r'^(?!.*Values|.*Info)Accuracy\D+(\d+.?\d).$', text, re.MULTILINE)
-    # Accuracy is mutuall exclusive with other forms of accuracy
-    if accuracy and (not missileaccuracy or not spacecraftaccuracy) and (not accuracyvalues or not modrange or not missilehitchance or not spacecrafthitchance):
-        template['accuracy'] = accuracy.group(1) + "%"
-        
 
     # missilehitchance
     missilehitchance = re.search(r'Missile Hitchance\D+(\d+)', text)
@@ -106,6 +100,12 @@ def processPointDefense(text):
     if spacecrafthitchance:
         template['spacecrafthitchance'] = spacecrafthitchance.group(1) + "%"
     
+    # Extract Accuracy
+    accuracy = re.search(r'^(?!.*Values|.*Info)Accuracy\D+(\d+.?\d).$', text, re.MULTILINE)
+    # Accuracy is mutually exclusive with other forms of accuracy
+    if accuracy and (not missileaccuracy or not spacecraftaccuracy) and (not accuracyvalues or not modrange or not missilehitchance or not spacecrafthitchance):
+        template['accuracy'] = accuracy.group(1) + "%"
+
     # Extract Prioritized Type
     type_match = re.search(r'Type.* ([\w\s][^\n]+)', text)
     if type_match:

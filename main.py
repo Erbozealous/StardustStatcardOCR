@@ -10,7 +10,8 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import json
-
+import cv2
+import numpy as np
 
 
 import ocr
@@ -33,19 +34,8 @@ class WeaponStatsGUI:
                 self.settings = json.load(f)
         else: 
             # Initialize settings
-            self.settings = {
-                'psm_mode': 6,
-                'auto_scale': True,
-                'min_size': 600,
-                'scale_factor': 2.0,
-                'grayscale': False,
-                'save_images': False,
-                'existing_weapon': True,
-                'theme': 'dark',
-                'use_adaptive_threshold': False,
-                'threshold': 127,
-                'threhold_max': 255
-            }
+            print("settings.json not found, creating default settings")
+            self.settings = load_default_settings()
         
         # Weapon type selection frame
         self.weapon_frame = ttk.LabelFrame(root, text="Type")
@@ -100,14 +90,22 @@ class WeaponStatsGUI:
         self.status_bar = ttk.Label(root, textvariable=self.status_var, relief="sunken")
         self.status_bar.pack(fill="x", padx=5, pady=(5, 8))
         self.status_var.set("The OCR can make mistakes. Make sure to double-check!")
+
+
+
+        # Initialize ONNX OCR
+        self.ONNX = ocr.OCR()
+
+
+
         
     def load_image_file(self):
         file_path = filedialog.askopenfilename(
             filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp *.gif")])
         if file_path:
             try:
-                image = Image.open(file_path)
-                result = process_image_to_template(image, self.weapon_type.get(), self.settings)
+                image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+                result = process_image_to_template(image, self.weapon_type.get(), self.settings, self.ONNX)
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
                 self.status_var.set(self.weapon_type.get() +  " processed successfully")
@@ -122,10 +120,12 @@ class WeaponStatsGUI:
         # After settings window is closed, check if settings were saved
         if hasattr(settings_window, 'settings_saved') and settings_window.settings_saved:
             self.settings = settings_window.final_settings
-            print("Settings saved:", self.settings)
+            if(self.settings is not None and self.settings.get('verbose', 1) > 1): print("Settings saved:", self.settings)
     
     def paste_from_clipboard(self):
         temp_path = None
+        if self.settings is None:
+            self.settings = load_default_settings()
         try:
             if platform.system() == "Darwin" or platform.system() == "Windows":
                 # macOS path using ImageGrab
@@ -133,6 +133,20 @@ class WeaponStatsGUI:
                 if image is None:
                     raise ValueError("No image found in clipboard (" + platform.system() + ")")
                 
+                # If image is a list of file paths, open the first image file
+                if isinstance(image, list):
+                    if len(image) == 0:
+                        raise ValueError("No image file found in clipboard (" + platform.system() + ")")
+                    image = Image.open(image[0])
+                
+                # Convert PIL image to OpenCV format for processing
+                opencv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
+                result = process_image_to_template(opencv_image, self.weapon_type.get(), self.settings, self.ONNX)
+                self.output_text.delete(1.0, tk.END)
+                self.output_text.insert(tk.END, result)
+                self.status_var.set(self.weapon_type.get() + " processed successfully")
+                
+                image = image.convert('L')
                 result = process_image_to_template(image, self.weapon_type.get(), self.settings)
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
@@ -143,7 +157,7 @@ class WeaponStatsGUI:
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
                     temp_path = temp_file.name
                 
-                print(f"Created temporary file: {temp_path}")
+                if(self.settings.get('verbose', 1) == 2): print(f"Created temporary file: {temp_path}")
                 
                 try:
                     result = subprocess.run(['wl-paste', '-t', 'image/png'], 
@@ -154,7 +168,8 @@ class WeaponStatsGUI:
                     with open(temp_path, 'wb') as f:
                         f.write(result.stdout)
                     
-                    print(f"wl-paste output size: {len(result.stdout)} bytes")
+                    if(self.settings.get('verbose', 2) > 1):
+                        print(f"wl-paste output size: {len(result.stdout)} bytes")
                     if result.stderr:
                         print(f"wl-paste stderr: {result.stderr.decode()}")
                         
@@ -167,8 +182,8 @@ class WeaponStatsGUI:
                     raise ValueError("No image data in clipboard")
                 
                 # Open and process the image
-                image = Image.open(temp_path)
-                result = process_image_to_template(image, self.weapon_type.get(), self.settings)
+                image = cv2.imread(temp_path, cv2.IMREAD_GRAYSCALE)
+                result = process_image_to_template(image, self.weapon_type.get(), self.settings, self.ONNX)
                 
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
@@ -216,26 +231,21 @@ class SettingsWindow:
         self.window.geometry(f'{width}x{height}+{x}+{y}')
     
     def load_current_settings(self):
-        # Set PSM mode
-        current_psm = self.current_settings.get('psm_mode', 6)
-        for value in self.psm_values:
-            if value.startswith(str(current_psm)):
-                self.psm_var.set(value)
+        # Set verbosity
+        current_verbosity = self.current_settings.get('verbose', 1)
+        for value in self.verbosity:
+            if value.startswith(str(current_verbosity)):
+                self.verbose.set(value)
                 break
         
-        # Set scale settings
-        self.scale_var.set(self.current_settings.get('auto_scale', True))
-        self.min_size.set(str(self.current_settings.get('min_size', 600)))
-        self.scale_factor.set(str(self.current_settings.get('scale_factor', 2.0)))
-        
-        # Set grayscale
-        self.grayscale_var.set(self.current_settings.get('grayscale', False))
-        
-        # Set adaptive threshold options
-        self.adaptive_threshold_var.set(self.current_settings.get('use_adaptive_threshold', False))
-        self.block_size_var.set(str(self.current_settings.get('threshold', 127)))
-        self.c_value_var.set(str(self.current_settings.get('threshold_max', 255)))
-        
+        # Manual scale
+        self.custom_width_var.set(self.current_settings.get('custom_width', False))
+
+        # widths
+        self.width_small_var.set(self.current_settings.get('width_small', 6))
+        self.width_medium_var.set(self.current_settings.get('width_medium', 7))
+        self.width_large_var.set(self.current_settings.get('width_large', 8))
+
         # Set save images
         self.save_images_var.set(self.current_settings.get('save_images', False))
         
@@ -253,20 +263,15 @@ class SettingsWindow:
         settings_frame.pack(padx=5, pady=(5, 8), fill="x")
         
         # PSM Mode selection
-        ttk.Label(settings_frame, text="Page Segmentation Mode:").pack(anchor="w", padx=5, pady=(2, 4))
-        self.psm_values = [
-            "0 - Orientation and script detection only",
-            "1 - Automatic page segmentation with OSD",
-            "3 - Fully automatic page segmentation, but no OSD",
-            "4 - Assume a single column of text of variable sizes",
-            "6 - Assume a uniform block of text",
-            "7 - Treat the image as a single text line",
-            "8 - Treat the image as a single word",
-            "13 - Raw line. Treat the image as a single text line"
+        ttk.Label(settings_frame, text="Debug verbosity:").pack(anchor="w", padx=5, pady=(2, 4))
+        self.verbosity = [
+            "0 - Literally nothing",
+            "1 - Basic",
+            "2 - Everything"
         ]
-        self.psm_var = tk.StringVar()
-        psm_combo = ttk.Combobox(ocr_frame, textvariable=self.psm_var, 
-                                values=self.psm_values, state="readonly")
+        self.verbose = tk.StringVar()
+        psm_combo = ttk.Combobox(ocr_frame, textvariable=self.verbose, 
+                                values=self.verbosity, state="readonly")
         psm_combo.pack(fill="x", padx=5, pady=(5, 8))
     
     def create_image_settings(self):
@@ -276,48 +281,23 @@ class SettingsWindow:
         image_options_frame = ttk.Frame(image_frame)
         image_options_frame.pack(padx=5, pady=(5, 8), fill="x")
         
-        # Auto-scale small images
-        self.scale_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(image_options_frame, text="Auto-scale small images for better accuracy", 
-                       variable=self.scale_var).pack(anchor="w", padx=5, pady=2)
-        
-        # Minimum image size before scaling
-        min_size_frame = ttk.Frame(image_options_frame)
-        min_size_frame.pack(fill="x", padx=5, pady=4)
-        ttk.Label(min_size_frame, text="Minimum image size (pixels):").pack(side="left")
-        self.min_size = tk.StringVar(value="600")
-        ttk.Entry(min_size_frame, textvariable=self.min_size, width=5).pack(side="left", padx=5)
-        
-        # Scale factor for small images
-        scale_frame = ttk.Frame(image_options_frame)
-        scale_frame.pack(fill="x", padx=5, pady=4)
-        ttk.Label(scale_frame, text="Scale factor:").pack(side="left")
-        self.scale_factor = tk.StringVar(value="2.0")
-        ttk.Entry(scale_frame, textvariable=self.scale_factor, width=5).pack(side="left", padx=5)
-        
-        # Grayscale conversion
-        self.grayscale_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(image_options_frame, text="Convert to grayscale before processing", 
-                       variable=self.grayscale_var).pack(anchor="w", padx=5, pady=2)
-        
-        # Adaptive thresholding
-        self.adaptive_threshold_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(image_options_frame, text="Use adaptive thresholding", 
-                       variable=self.adaptive_threshold_var).pack(anchor="w", padx=5, pady=2)
-        
-        # Adaptive threshold parameters
-        threshold_frame = ttk.Frame(image_options_frame)
-        threshold_frame.pack(fill="x", padx=5, pady=4)
-        
-        # Block size
-        ttk.Label(threshold_frame, text="Threshold:").pack(side="left")
-        self.block_size_var = tk.StringVar(value="127")
-        ttk.Entry(threshold_frame, textvariable=self.block_size_var, width=5).pack(side="left", padx=5)
-        
-        # C value
-        ttk.Label(threshold_frame, text="Threshold Max").pack(side="left", padx=(10,0))
-        self.c_value_var = tk.StringVar(value="255")
-        ttk.Entry(threshold_frame, textvariable=self.c_value_var, width=5).pack(side="left", padx=5)
+        # Custom Scale
+        self.custom_width_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(image_options_frame, text="Use custom width for small/medium/large text",
+                        variable=self.custom_width_var).pack(anchor="w", padx=5, pady=2)
+
+        # Widths for small, medium, large text
+        width_frame = ttk.Frame(image_options_frame)
+        width_frame.pack(padx=5, pady=(5, 8), fill="x")
+        ttk.Label(width_frame, text="Small:").grid(row=0, column=1, sticky="w", padx=5, pady=2)
+        self.width_small_var = tk.IntVar(value=6)
+        ttk.Entry(width_frame, textvariable=self.width_small_var, width=5).grid(row=1, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(width_frame, text="Medium:").grid(row=0, column=2, sticky="w", padx=5, pady=2)
+        self.width_medium_var = tk.IntVar(value=7)
+        ttk.Entry(width_frame, textvariable=self.width_medium_var, width=5).grid(row=1, column=2, sticky="w", padx=5, pady=2)
+        ttk.Label(width_frame, text="Large:").grid(row=0, column=3, sticky="w", padx=5, pady=2)
+        self.width_large_var = tk.IntVar(value=8)
+        ttk.Entry(width_frame, textvariable=self.width_large_var, width=5).grid(row=1, column=3, sticky="w", padx=5, pady=2)
         
         # Save processed images
         self.save_images_var = tk.BooleanVar(value=False)
@@ -361,25 +341,21 @@ class SettingsWindow:
         # Store current values
         try:
             self.final_settings = {
-                'psm_mode': int(self.psm_var.get().split()[0]),
-                'auto_scale': self.scale_var.get(),
-                'min_size': int(self.min_size.get()),
-                'scale_factor': float(self.scale_factor.get()),
-                'grayscale': self.grayscale_var.get(),
+                'verbose': int(self.verbose.get().split()[0]),
+                'custom_width': self.custom_width_var.get(),
+                'width_small': int(self.width_small_var.get()),
+                'width_medium': int(self.width_medium_var.get()),
+                'width_large': int(self.width_large_var.get()),
                 'save_images': self.save_images_var.get(),
                 'existing_weapon': self.existing_weapon_var.get(),
                 'theme': self.theme_var.get() if hasattr(self, 'theme_var') else 'dark',
-                'use_adaptive_threshold': self.adaptive_threshold_var.get(),
-                'threshold': int(self.block_size_var.get()),
-                'threshold_max': int(self.c_value_var.get())
+
             }
             # Save settings to a JSON file
             with open('settings.json', 'w') as f:
                 json.dump(self.final_settings, f, indent=4)
                 
         
-                
-                
                 
         except ValueError as e:
             messagebox.showerror("Error", "Invalid numeric value in settings")
@@ -391,9 +367,11 @@ class SettingsWindow:
         self.settings_saved = False
         self.window.destroy()
 
-def process_image_to_template(image, weapon_type='pointdefense', settings=None):
-
-    text = ocr.scan_image(image, weapon_type, settings)
+def process_image_to_template(image, weapon_type='pointdefense', settings=None, onnx_processor=None):
+    if onnx_processor is None:
+        raise ValueError("ONNX processor must be provided")
+    
+    text = onnx_processor.ocr_segmented(image, weapon_type, settings)
 
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')
@@ -415,9 +393,9 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None):
                     "Weapon Already Exists",
                     f"The weapon '{weapon_name}' already exists in the database."
                 )
-            print(f"Weapon '{weapon_name}' already exists in the database.")
+            if(settings.get('verbose', 1) > 0): print(f"Weapon '{weapon_name}' already exists in the database.")
         else:
-            print(f"Weapon '{weapon_name}' does not exist in the database.")
+            if(settings.get('verbose', 1) > 0): print(f"Weapon '{weapon_name}' does not exist in the database.")
     
     if weapon_type == "pointdefense":
         output = pointdefense.processPointDefense(text)
@@ -524,6 +502,21 @@ def check_weapon_exists(weapon_name, weapon_type='pointdefense'):
         print(f"Error checking weapon existence: {str(e)}")
         return False, None
 
+def load_default_settings():
+    """Load default settings for OCR processing."""
+    default_settings = {
+        'verbose': 1,
+        'custom_width': False,
+        'width_small': 6,
+        'width_medium': 7,
+        'width_large': 8,
+        'save_images': False,
+        'existing_weapon': True,
+        'theme': 'dark',
+    }
+    return default_settings
+
+
 def main():
     root = tk.Tk()
     
@@ -553,6 +546,9 @@ def main():
             root.iconphoto(False, photo) 
     except Exception as e:
         print(f"Error loading icon: {str(e)}")
+
+
+
 
     app = WeaponStatsGUI(root)
     root.mainloop()

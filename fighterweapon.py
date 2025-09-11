@@ -34,7 +34,7 @@ def processFighterWeapon(text):
 
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')
-    weapon_name = re.sub(r"@", "0", next((line for line in lines if line.strip()), "Unknown Weapon"))
+    weapon_name = next((line for line in lines if line.strip()), "Unknown Weapon")
 
     # This one is a little different as the weapon name is prefixed with the parent fighter so we can just remove all text before the ]
     weapon_name = re.sub(r".*\] ", "", weapon_name)
@@ -51,12 +51,12 @@ def processFighterWeapon(text):
     againstShipSection = r'(?s)gain[^0-9\n]+hip\b.*?'
 
     # shipfiringrange
-    shipfiringrange = re.search(againstShipSection + r'Fir[^@0-9\n]+([@\d]+)', text)
+    shipfiringrange = re.search(againstShipSection + r'Fir[^0-9\n]+([\d]+)', text)
     if shipfiringrange:
         template['shipfiringrange'] = shipfiringrange.group(1)
     
     # shipmaxrange
-    shipmaxrange = re.search(againstShipSection + r'Max[^@0-9\n]+([@\d]+)', text)
+    shipmaxrange = re.search(againstShipSection + r'Max[^0-9\n]+([\d]+)', text)
     if shipmaxrange:
         template['shipmaxrange'] = shipmaxrange.group(1)
 
@@ -73,16 +73,16 @@ def processFighterWeapon(text):
 
     # Damage information
     # Guess what! Another prefix! Yay!
-    damageSection = r'(?s)Da[mn][^@0-9\n]+tion\b.*?'
+    damageSection = r'(?s)Da[mn][^0-9\n]+tion\b.*?'
 
 
     # damage
-    damage = re.search(damageSection + r'Da[mn][^@0-9\n]+([\d@]+\.?[\d@]*)[^0-9\n]*([\d@]+\.?[\d@]*)?', text)
+    damage = re.search(damageSection + r'Da[mn][^0-9\n]+([\d]+\.?[\d]*)[^0-9\n]*([\d]+\.?[\d]*)?', text)
     if(damage):
         template['damage'] = damage.group(1) + " - " + damage.group(2) 
     
     # shieldmulti
-    shieldmulti = re.search(damageSection + r'Multi[^0-9@\n]+([@\d]+\.?[@\d]*)', text)
+    shieldmulti = re.search(damageSection + r'Multi[^0-9\n]+([\d]+\.?[\d]*)', text)
     if shieldmulti:
         template['shieldmulti'] = shieldmulti.group(1) + "x"
 
@@ -93,17 +93,17 @@ def processFighterWeapon(text):
     
 
     # I bet you can't guess what comes next
-    healSection = r'(?s)Hea[^@0-9\n]+tion\b.*?'
+    healSection = r'(?s)Hea[^0-9\n]+tion\b.*?'
 
     # Thank god we can just copy the damage information section
 
     # heal
-    heal = re.search(healSection + r'Hea[^0-9@\n]+([\d@]+\.?[\d@]*)[^0-9\n]*([\d@]+\.?[\d@]*)?', text)   
+    heal = re.search(healSection + r'Hea[^0-9\n]+([\d]+\.?[\d]*)[^0-9\n]*([\d]+\.?[\d]*)?', text)   
     if(heal):
         template['heal'] = heal.group(1) + " - " + heal.group(2)
 
     # healmulti
-    healmulti = re.search(healSection + r'Multi[^0-9@\n]+([@\d]+\.?[@\d]*)', text)
+    healmulti = re.search(healSection + r'Multi[^0-9\n]+([\d]+\.?[\d]*)', text)
     if healmulti:
         template['healmulti'] = healmulti.group(1) + "x"
 
@@ -114,15 +114,15 @@ def processFighterWeapon(text):
 
 
     # Spacecraft Stats
-    fighterSection = r'(?s)gai[^@0-9\n]+aft\b.*?'
+    fighterSection = r'(?s)gai[^0-9\n]+aft\b.*?'
 
      # shipfiringrange
-    fighterfiringrange = re.search(fighterSection + r'Fir[^@0-9\n]+([@\d]+)', text)
+    fighterfiringrange = re.search(fighterSection + r'Fir[^0-9\n]+([\d]+)', text)
     if fighterfiringrange:
         template['fighterfiringrange'] = fighterfiringrange.group(1)
     
     # shipmaxrange
-    fightermaxrange = re.search(fighterSection + r'Max[^@0-9\n]+([@\d]+)', text)
+    fightermaxrange = re.search(fighterSection + r'Max[^0-9\n]+([\d]+)', text)
     if fightermaxrange:
         template['fightermaxrange'] = fightermaxrange.group(1)
 
@@ -137,7 +137,7 @@ def processFighterWeapon(text):
         template['fighterpassive'] = fighterpassive.group(1)
 
     # fighterdamage
-    fighterdamage = re.search(fighterSection + r'Da[mn][^0-9@]+([\d@]+\.?[\d@]*)[^0-9\n]*([\d@]+\.?[\d@]*)?', text)
+    fighterdamage = re.search(fighterSection + r'Da[mn][^0-9]+([\d]+\.?[\d]*)[^0-9\n]*([\d]+\.?[\d]*)?', text)
     if(fighterdamage):
         template['fighterdamage'] = fighterdamage.group(1) + " - " + fighterdamage.group(2)
 
@@ -145,17 +145,17 @@ def processFighterWeapon(text):
 
 
      # burst
-    burst = re.search(r'^Bursts[^0-9\n]+([\d@]+)', text, re.MULTILINE)
+    burst = re.search(r'^Bursts[^0-9\n]+([\d]+)', text, re.MULTILINE)
     if burst:
         template['burst'] = burst.group(1) + " x"
     
     # burstsshots
-    burstsshots = re.search(r'hots[^0-9\n]+([\d@]+)', text)
+    burstsshots = re.search(r'hots[^0-9\n]+([\d]+)', text)
     if burstsshots:
         template['burstsshots'] = burstsshots.group(1) + " x"
 
     # burstsdelay
-    burstsdelay = re.search(r'Del[^@\d]*([\d@]+\.?[@\d]*)', text)
+    burstsdelay = re.search(r'Del[^\d]*([\d]+\.?[\d]*)', text)
     if burstsdelay:
         template['burstsdelay'] = burstsdelay.group(1) + " s"
 
@@ -163,7 +163,7 @@ def processFighterWeapon(text):
     # Other information
 
     # objectives
-    objectives = re.search(r'Obj[^0-9\n@]*(Yes|No)', text)
+    objectives = re.search(r'Obj[^0-9\n]*(Yes|No)', text)
     if objectives:
         template['objectives'] = objectives.group(1)
 
@@ -175,7 +175,7 @@ def processFighterWeapon(text):
     
     # ammo
     # either num or infinite
-    ammo = re.search(r'ount[^0-9@]+([\d@]+|nite)', text)
+    ammo = re.search(r'ount[^0-9]+([\d]+|nite)', text)
     if ammo:
         if ammo.group(1).lower() == "nite":
             template['ammo'] = "Infinite"
@@ -183,16 +183,13 @@ def processFighterWeapon(text):
             template['ammo'] = ammo.group(1)
 
     # speed
-    speed = re.search(r'eed[^0-9\n@]*([\d@]+|Instant)', text)
+    speed = re.search(r'eed[^0-9\n]*([\d]+|Instant)', text)
     if speed:
         if speed.group(1) == "Instant":
             template['speed'] = "Instant"
         else:
             template['speed'] = speed.group(1) + " m/s"
 
-    # for loop to remove all @
-    for key, value in template.items():
-        template[key] = re.sub(r"@", "0", value)
 
     # packaging the output
     output = f"['{weapon_name}'] = {{\n"
