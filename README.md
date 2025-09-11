@@ -1,7 +1,7 @@
 
 # Project Stardust statcard OCR
 
-Simple OCR processing to read the statcards of weapons for the game Project Stardust using pytesseract and regex.
+Simple OCR processing to read the statcards of weapons for the game Project Stardust using CNN and regex.
 
 ![Example Usage](assets/screenshot1.png)
 
@@ -11,16 +11,12 @@ Simple OCR processing to read the statcards of weapons for the game Project Star
 ### Dependencies
 
 * Python
+    * opencv-python
+    * numpy
     * Pillow
-    * pytesseract
     * beautifulsoup4
     * requests
-    * numpy
-    * pandas
-    * tkinter
-    * pytest
-    * sphinx
-* [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
+    * onnxruntime
   
 
 ### Installing
@@ -47,8 +43,6 @@ Erb
 
 Rdbende for Sun Valley theme
 
-Tesseract for their OCR
-
 
 ## See Also
 
@@ -56,6 +50,5 @@ Tesseract for their OCR
 
 * [Wiki](https://projectstardustwiki.miraheze.org/wiki/Main_Page)
 
-* [Tesseract](https://github.com/tesseract-ocr/tesseract)
 
 * [Sun Valley Theme](https://github.com/rdbende/Sun-Valley-ttk-theme)
