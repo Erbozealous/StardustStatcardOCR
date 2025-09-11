@@ -309,18 +309,23 @@ def pixel_hist(region, bg_gray):
     return hist
 
 def match_rule(hist, rules, tolerance=1, verbose=0):
-    """Match histogram against rule set; return offset if matched."""
     for char_name, rule in rules.items():
         expected = {int(k): v for k, v in rule.items() if k != "offset"}
         offset = rule["offset"]
 
+        # Check expected counts
         ok = True
         for val, exp_count in expected.items():
             if abs(hist.get(val, 0) - exp_count) > tolerance:
                 ok = False
                 break
-        if ok and verbose > 1: print(f"Testing rule {char_name}: Matched") 
 
+        # Check for unexpected values
+        for val in hist:
+            if val not in expected and hist[val] > tolerance:
+                ok = False
+                break
+        if ok: print(f"Testing rule {char_name}: Matched")
         if ok:
             return offset
     return 0

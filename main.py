@@ -387,9 +387,9 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None, 
                     "Weapon Already Exists",
                     f"The weapon '{weapon_name}' already exists in the database."
                 )
-            if(settings.get('verbose', 1) > 0): print(f"Weapon '{weapon_name}' already exists in the database.")
+            if(settings.get('verbose', 1) > 0): print(f"Item '{weapon_name}' already exists in the database.")
         else:
-            if(settings.get('verbose', 1) > 0): print(f"Weapon '{weapon_name}' does not exist in the database.")
+            if(settings.get('verbose', 1) > 0): print(f"Item '{weapon_name}' does not exist in the database.")
     
     if weapon_type == "pointdefense":
         output = pointdefense.processPointDefense(text)
@@ -469,6 +469,9 @@ def check_weapon_exists(weapon_name, weapon_type='pointdefense'):
         if not lua_code:
             print(f"Could not find weapon data for \"{weapon_name}\" in {url}")
             return False, None
+
+        
+
             
         # Create a pattern to match weapon names in the Lua code
         # This looks for ["weapon name"] = { pattern
@@ -479,6 +482,9 @@ def check_weapon_exists(weapon_name, weapon_type='pointdefense'):
         
         # Clean up the weapon name for comparison (remove extra spaces and make case-insensitive)
         clean_name = weapon_name.strip().lower()
+
+        # Strip brackets for fighter weapons
+        if (weapon_type == "fighterweapon"): clean_name = re.sub(r".*\] ", "", clean_name)
         
         # Check if the weapon exists
         for existing_name in weapon_names:

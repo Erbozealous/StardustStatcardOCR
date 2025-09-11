@@ -32,8 +32,6 @@ Install the needed modules with
 pip install -r requirements.txt
 ```
 
-Tesseract can be installed with any package manager on Linux. For MacOS it may require [Homebrew](https://formulae.brew.sh/formula/tesseract). For Windows, you will need to use the installers by [UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki).
-
 ### Executing program
 
 Start the script with
