@@ -26,6 +26,7 @@ def processFighterWeapon(text):
         'burstsdelay': '',
 
         'objectives': '',
+        'charge': '',
         'reload': '',
         'ammo': '',
         'speed': '',
@@ -172,14 +173,18 @@ def processFighterWeapon(text):
     reload = re.search(r'^Reload\D*(\d*\.?\d*)[^0-9\r\n]*(\d*\.?\d*)?', text, re.MULTILINE)
     if reload:
         template['reload'] = reload.group(1) + " - " + reload.group(2) + " s"
+
+    # Charge
+    charge = re.search(r'Charge Time: (.* s)', text)
+    if charge:
+        template['charge'] = charge.group(1)
+
+
     
     # ammo
     # either num or infinite
-    ammo = re.search(r'ount[^0-9]+([\d]+|nite)', text)
+    ammo = re.search(r'Count[^0-9\n]+([\d]+|Infinite)', text)
     if ammo:
-        if ammo.group(1).lower() == "nite":
-            template['ammo'] = "Infinite"
-        else:
             template['ammo'] = ammo.group(1)
 
     # speed
