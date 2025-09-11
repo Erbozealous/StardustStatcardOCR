@@ -41,9 +41,6 @@ def processMissile(text):
     burstsdelay = re.search(r'Delay Between Bursts[^\d]*([\d]+\.?\d*)', text)
     if burstsdelay:
         template['burstsdelay'] = burstsdelay.group(1)
-        # If number starts with 0 we add a decimal point
-        if template['burstsdelay'].startswith("0"):
-            template['burstsdelay'] = "0." + template['burstsdelay'][1:] + " s"
 
 
     # damage
