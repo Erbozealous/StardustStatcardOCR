@@ -7,7 +7,7 @@ import sys
 import json
 
 
-def segment_lines(img, bg_gray=50, sep_threshold=150, min_height=7, verbose=0, debug_path=None) -> List[Tuple[int,int]]:
+def segment_lines(img, bg_gray=50, sep_threshold=200, min_height=7, verbose=0, debug_path=None) -> Tuple[List[Tuple[int,int]], int, int]:
     """
     Scan horizontally to detect line boxes in a grayscale image.
 
@@ -27,6 +27,9 @@ def segment_lines(img, bg_gray=50, sep_threshold=150, min_height=7, verbose=0, d
     inside_line = False
     y_start = 0
 
+    stat_boundary_left = 0
+    stat_boundary_right = 0
+
     for y in range(H):
         # Count non-background pixels in this row
         row_foreground = np.count_nonzero(img[y, :] != bg_gray)
@@ -45,6 +48,16 @@ def segment_lines(img, bg_gray=50, sep_threshold=150, min_height=7, verbose=0, d
                 inside_line = False
                 y_start = None
 
+        if stat_boundary_left == 0 and stat_boundary_right == 0 and row_foreground >= sep_threshold:
+            stat_boundary_left = 0
+            while stat_boundary_left < W and not np.any(img[y, stat_boundary_left:stat_boundary_left+1] != bg_gray):
+                stat_boundary_left += 1
+            stat_boundary_right = W
+            while stat_boundary_right > 0 and not np.any(img[y, stat_boundary_right:stat_boundary_right+1] != bg_gray):
+                stat_boundary_right -= 1
+            stat_boundary_right+=1
+            if(verbose > 1): print(f"Stat Left:{stat_boundary_left} / Right: {stat_boundary_right}")
+
     # Handle last line if open at end of image
     if inside_line and y_start is not None:
         line_boxes.append((y_start, H - 1))
@@ -54,14 +67,16 @@ def segment_lines(img, bg_gray=50, sep_threshold=150, min_height=7, verbose=0, d
         debug_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         for (y1, y2) in line_boxes:
             cv2.rectangle(debug_img, (0, y1), (W - 1, y2), (0, 255, 0), 1)
+        cv2.line(debug_img, (stat_boundary_left, 0), (stat_boundary_left, H), (255, 0, 0), 1)
+        cv2.line(debug_img, (stat_boundary_right, 0), (stat_boundary_right, H), (255, 0, 0), 1)
         cv2.imwrite(f"{debug_path}/debug_lines.png", debug_img)
 
     if (verbose > 1): print(f"Detected {len(line_boxes)} lines.")
 
-    return line_boxes
+    return line_boxes, stat_boundary_left, stat_boundary_right
 
 
-def segment_chars(line_img, bg_gray=50, debug_path=None, line_idx=0, settings=None, centered=False, rules= None) -> Tuple[List[Tuple[int,int,int,int]], bool]:
+def segment_chars(line_img, bg_gray=50, debug_path=None, line_idx=0, settings=None, centered=False, rules= None, stat_left=0, stat_right=0) -> Tuple[List[Tuple[int,int,int,int]], bool]:
     """
     Segments a line of text into bounding boxes for each character.
     Assumes grayscale (0=black, 255=background).
@@ -188,9 +203,11 @@ def segment_chars(line_img, bg_gray=50, debug_path=None, line_idx=0, settings=No
         # Left → Right
         x = 0
 
-        while x < imgW and not has_foreground(line_img[:, x:x+1]):
-            x += 1
-
+        if(centered):
+            while x < imgW and not has_foreground(line_img[:, x:x+1]):
+                x += 1
+        else:
+            x = stat_left
 
         # Possible offsets
         exit_offset = False
@@ -227,13 +244,11 @@ def segment_chars(line_img, bg_gray=50, debug_path=None, line_idx=0, settings=No
 
         if not centered:
             # Right → Left
-            x = imgW
+            x = stat_right
             empty_count = 0
             right_boxes = []
 
-            while x > 0 and not has_foreground(line_img[:, x:x+1]):
-                x -= 1
-            x+=1  # move back to include last pixel
+            
 
             while x - char_width >= mid:
                 region = line_img[:, x-char_width:x]
@@ -346,7 +361,7 @@ def segment_image(img, data_directory="OCR", debug_path=None, settings=None) -> 
 
     H, W = img.shape
 
-    line_boxes = segment_lines(img, bg_gray=50,sep_threshold=200, debug_path=debug_path, verbose=settings.get('verbose', 0))
+    line_boxes, left, right = segment_lines(img, bg_gray=50,sep_threshold=200, debug_path=debug_path, verbose=settings.get('verbose', 0))
 
     offset_rules = {}
     with open(f"{data_directory}/offset_rules.json", "r") as f:
@@ -357,7 +372,7 @@ def segment_image(img, data_directory="OCR", debug_path=None, settings=None) -> 
     alignList = []
     for line_idx, (y1, y2) in enumerate(line_boxes, start=0):
         line_img = img[y1:y2, :]  # crop line
-        char_boxes, align = segment_chars(line_img, bg_gray=50, debug_path=debug_path, settings=settings, line_idx=line_idx, rules=offset_rules)
+        char_boxes, align = segment_chars(line_img, bg_gray=50, debug_path=debug_path, settings=settings, line_idx=line_idx, rules=offset_rules, stat_left=left, stat_right=right)
         all_chars.append(char_boxes)
         alignList.append(align)
 
