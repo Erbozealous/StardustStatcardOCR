@@ -28,10 +28,7 @@ class OCR:
         self.label_to_char = {i: c for i, c in enumerate(self.char_list)}
 
         # Load ONNX model
-        self.ort_session = ort.InferenceSession(self.onnx_path)
-
-        # Set ONNX to cpu to supress warnings
-        self.ort_session = ort.InferenceSession("STARDUST.onnx", providers=["CPUExecutionProvider"])
+        self.ort_session = ort.InferenceSession(self.onnx_path, providers=["CPUExecutionProvider"])
 
 
     def load_default_settings(self):
