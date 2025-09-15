@@ -3,8 +3,85 @@ import numpy as np
 import cv2
 import glob
 import os
-import sys
 import json
+
+
+
+import numpy as np
+import cv2
+
+import os
+import cv2
+import numpy as np
+
+import os
+import cv2
+import numpy as np
+
+def crop_img(img, bg_gray=50, debug_path=None):
+    # Make sure it's uint8 for cv2
+    if img.dtype != np.uint8:
+        img = img.astype(np.uint8)
+    
+    H, W = img.shape
+    
+    # Start flood fill from the center
+    center_y, center_x = H // 2, W // 2
+    
+    # Create a slightly larger mask for flood fill
+    mask = np.zeros((H+2, W+2), np.uint8)
+    flood_img = img.copy()
+
+    # Replace a small region around the center with background gray
+    block_size = 10  # Size of the gray block (10x10 pixels)
+    half_block = block_size // 2
+    y1 = max(0, center_y - half_block)
+    y2 = min(H, center_y + half_block)
+    x1 = max(0, center_x - half_block)
+    x2 = min(W, center_x + half_block)
+    flood_img[y1:y2, x1:x2] = bg_gray
+    
+    # Flood fill from center with a value different from bg_gray
+    cv2.floodFill(flood_img, mask, (center_x, center_y), (127,), 
+                  loDiff=(5,), upDiff=(5,), flags=4)  # flag 4 = 4-connected
+    
+    # Create binary mask of the flooded region
+    flood_mask = (flood_img == 127).astype(np.uint8) * 255
+    
+    # Find contours of the flood-filled region
+    contours, _ = cv2.findContours(flood_mask, cv2.RETR_EXTERNAL, 
+                                 cv2.CHAIN_APPROX_SIMPLE)
+    
+    if not contours:
+        return img
+    
+    # Get the largest contour
+    largest_contour = max(contours, key=cv2.contourArea)
+    x, y, w, h = cv2.boundingRect(largest_contour)
+    
+    # Add size constraints
+    min_area_ratio = 0.1  # Minimum area as fraction of total image
+    min_area = H * W * min_area_ratio
+    if cv2.contourArea(largest_contour) < min_area:
+        if debug_path:
+            debug_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+            cv2.putText(debug_img, "Crop failed: Region too small", (10, 30), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+            cv2.imwrite(f"{debug_path}/debug_crop.png", debug_img)
+        return img  # Return original if detected region is too small
+
+    if debug_path:
+        debug_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        cv2.rectangle(debug_img, (x,y),(x+w,y+h),(0,0,255),2)
+        cv2.imwrite(f"{debug_path}/debug_crop.png", debug_img)
+
+
+
+
+    return img[y:y+h, x:x+w]
+
+
+
 
 
 def segment_lines(img, bg_gray=50, sep_threshold=200, min_height=7, verbose=0, debug_path=None) -> Tuple[List[Tuple[int,int]], int, int]:
@@ -155,6 +232,7 @@ def segment_chars(line_img, bg_gray=50, debug_path=None, line_idx=0, settings=No
             test_box = line_img[:, x-2:x-2+char_width]   # <--- your test box
             hist = pixel_hist(test_box, bg_gray)
             char_rules = rules.get(str(char_width), {})
+            if(settings.get('verbose', 1) > 1): print(f"Offset: {-2} - Hist: {hist}")
             offset = match_rule(hist, char_rules, verbose=settings.get('verbose', 1))
             if offset != 0:
                 x += offset
@@ -165,6 +243,7 @@ def segment_chars(line_img, bg_gray=50, debug_path=None, line_idx=0, settings=No
             test_box = line_img[:, x-1:x-1+char_width]
             hist = pixel_hist(test_box, bg_gray)
             char_rules = rules.get(str(char_width), {})
+            if(settings.get('verbose', 1) > 1): print(f"Offset: {-1} - Hist: {hist}")
             offset = match_rule(hist, char_rules, verbose=settings.get('verbose', 1))
             if offset != 0:
                 x += offset
@@ -327,7 +406,7 @@ def match_rule(hist, rules, tolerance=1, verbose=0):
     for char_name, rule in rules.items():
         expected = {int(k): v for k, v in rule.items() if k != "offset"}
         offset = rule["offset"]
-
+        
         # Check expected counts
         ok = True
         for val, exp_count in expected.items():
@@ -340,9 +419,10 @@ def match_rule(hist, rules, tolerance=1, verbose=0):
             if val not in expected and hist[val] > tolerance:
                 ok = False
                 break
-        if ok: print(f"Testing rule {char_name}: Matched")
         if ok:
+            if(verbose > 1): print(f"Testing rule {char_name}: Matched")
             return offset
+            
     return 0
 
 
@@ -357,6 +437,9 @@ def segment_image(img, data_directory="OCR", debug_path=None, settings=None) -> 
 
     if settings is None:
         settings = load_default_settings()
+
+
+    img = crop_img(img, 50, debug_path)
 
 
     H, W = img.shape
