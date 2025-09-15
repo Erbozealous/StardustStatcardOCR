@@ -27,7 +27,7 @@ def processMissile(text):
     text = '\n'.join(lines[1:])
     
     # burst
-    burst = re.search(r'Bursts\D*(\d+)', text)
+    burst = re.search(r'^Bursts\D*(\d+)', text, re.MULTILINE)
     if burst:
         template['burst'] = burst.group(1) + " x"
     

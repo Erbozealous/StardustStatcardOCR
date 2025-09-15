@@ -148,7 +148,7 @@ def processFighterWeapon(text):
      # burst
     burst = re.search(r'^Bursts[^0-9\n]+([\d]+)', text, re.MULTILINE)
     if burst:
-        template['burst'] = burst.group(1) + " x"
+        template['bursts'] = burst.group(1) + " x"
     
     # burstsshots
     burstsshots = re.search(r'hots[^0-9\n]+([\d]+)', text)
