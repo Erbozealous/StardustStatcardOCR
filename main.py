@@ -25,7 +25,7 @@ import fighterweapon
 class WeaponStatsGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Weapon Stats OCR")
+        self.root.title("Analyzer")
         self.root.geometry("800x650")
         
         # Read from settings.json if it exists
@@ -198,7 +198,7 @@ class SettingsWindow:
     def __init__(self, parent, current_settings):
         self.window = tk.Toplevel(parent)
         self.window.title("OCR Settings")
-        self.window.geometry("400x650")
+        self.window.geometry("400x500")
         self.window.transient(parent)  # Make window modal
         self.window.grab_set()
         
