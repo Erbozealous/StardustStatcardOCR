@@ -5,19 +5,6 @@ import glob
 import os
 import json
 
-
-
-import numpy as np
-import cv2
-
-import os
-import cv2
-import numpy as np
-
-import os
-import cv2
-import numpy as np
-
 def crop_img(img, bg_gray=50, debug_path=None):
     # Make sure it's uint8 for cv2
     if img.dtype != np.uint8:
@@ -77,7 +64,6 @@ def crop_img(img, bg_gray=50, debug_path=None):
 
 
 
-
     return img[y:y+h, x:x+w]
 
 
@@ -98,6 +84,7 @@ def segment_lines(img, bg_gray=50, sep_threshold=200, min_height=7, verbose=0, d
     Returns:
         list of tuples: [(y1, y2), ...] line bounding boxes.
     """
+    
     H, W = img.shape
     line_boxes = []
 
@@ -106,6 +93,8 @@ def segment_lines(img, bg_gray=50, sep_threshold=200, min_height=7, verbose=0, d
 
     stat_boundary_left = 0
     stat_boundary_right = 0
+
+    img[:, -3:] = 50
 
     for y in range(H):
         # Count non-background pixels in this row
@@ -201,7 +190,9 @@ def segment_chars(line_img, bg_gray=50, debug_path=None, line_idx=0, settings=No
     x=0
     while x < imgW and not has_foreground(line_img[:, x:x+1]):
             x += 1
-    if(x < imgW/4) and line_idx > 2: line_type = "STAT"
+    if(stat_left) and line_idx > 2: 
+        line_type = "STAT"
+        returnCentered = False
 
     boxes = []
 

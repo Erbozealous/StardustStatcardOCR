@@ -21,12 +21,13 @@ import missile
 import sustainedbeam
 import fighter
 import fighterweapon
+import shield
 
 class WeaponStatsGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Analyzer")
-        self.root.geometry("800x650")
+        self.root.geometry("850x650")
         
         # Read from settings.json if it exists
         if os.path.exists('settings.json'):
@@ -58,6 +59,8 @@ class WeaponStatsGUI:
         ttk.Radiobutton(radio_frame, text="Fighter", value="fighter", 
                         variable=self.weapon_type).pack(side="left", padx=5)
         ttk.Radiobutton(radio_frame, text="Fighter Weapon", value="fighterweapon", 
+                        variable=self.weapon_type).pack(side="left", padx=5)
+        ttk.Radiobutton(radio_frame, text="Shield", value="shield", 
                         variable=self.weapon_type).pack(side="left", padx=5)
         
         # Input frame
@@ -372,7 +375,7 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None, 
     weapon_name = next((line for line in lines if line.strip()), "Unknown Weapon")
     
     # Check if weapon already exists in the database
-    if settings is not None and settings.get('existing_weapon', False):
+    if settings is not None and settings.get('existing_weapon', False) and weapon_type != "shield":
         exists, existing_entry = check_weapon_exists(weapon_name, weapon_type)
         if exists:
             if existing_entry:
@@ -403,6 +406,8 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None, 
         output = fighter.processFighter(text)
     elif weapon_type == "fighterweapon":
         output = fighterweapon.processFighterWeapon(text)
+    elif weapon_type == "shield":
+        output = shield.processShield(text)
     else:
         raise ValueError(f"Unknown weapon type: {weapon_type}")
     
