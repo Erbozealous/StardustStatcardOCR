@@ -172,7 +172,9 @@ def processFighterWeapon(text):
     # reload
     reload = re.search(r'^Reload\D*(\d*\.?\d*)[^0-9\r\n]*(\d*\.?\d*)?', text, re.MULTILINE)
     if reload:
-        template['reload'] = reload.group(1) + " s - " + reload.group(2) + " s"
+        template['reload'] = reload.group(1) + " s"
+        if(reload.group(2)):
+             template['reload']+= " - " + reload.group(2) + " s"
 
     # Charge
     charge = re.search(r'Charge Time: (.* s)', text)

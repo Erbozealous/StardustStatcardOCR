@@ -190,7 +190,7 @@ def segment_chars(line_img, bg_gray=50, debug_path=None, line_idx=0, settings=No
     x=0
     while x < imgW and not has_foreground(line_img[:, x:x+1]):
             x += 1
-    if(stat_left) and line_idx > 2: 
+    if(x == stat_left) and line_idx > 2: 
         line_type = "STAT"
         returnCentered = False
 
