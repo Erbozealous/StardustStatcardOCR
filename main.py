@@ -107,7 +107,7 @@ class WeaponStatsGUI:
             filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp *.gif")])
         if file_path:
             try:
-                image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+                image = cv2.imread(file_path, cv2.IMREAD_COLOR)
                 result = process_image_to_template(image, self.weapon_type.get(), self.settings, self.ONNX)
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
@@ -143,7 +143,7 @@ class WeaponStatsGUI:
                     image = Image.open(image[0])
                 
                 # Convert PIL image to OpenCV format for processing
-                opencv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
+                opencv_image = cv2.cvtColor(np.array(image), cv2.IMREAD_COLOR)
                 result = process_image_to_template(opencv_image, self.weapon_type.get(), self.settings, self.ONNX)
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
@@ -179,7 +179,7 @@ class WeaponStatsGUI:
                     raise ValueError("No image data in clipboard")
                 
                 # Open and process the image
-                image = cv2.imread(temp_path, cv2.IMREAD_GRAYSCALE)
+                image = cv2.imread(temp_path, cv2.IMREAD_COLOR)
                 result = process_image_to_template(image, self.weapon_type.get(), self.settings, self.ONNX)
                 
                 self.output_text.delete(1.0, tk.END)

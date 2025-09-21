@@ -5,6 +5,19 @@ import glob
 import os
 import json
 
+
+
+import numpy as np
+import cv2
+
+import os
+import cv2
+import numpy as np
+
+import os
+import cv2
+import numpy as np
+'''
 def crop_img(img, bg_gray=50, debug_path=None):
     # Make sure it's uint8 for cv2
     if img.dtype != np.uint8:
@@ -64,13 +77,79 @@ def crop_img(img, bg_gray=50, debug_path=None):
 
 
 
+
+    return img[y:y+h, x:x+w]
+'''
+def crop_img(img, bg_gray=(50,50,50), debug_path=None):
+    # Make sure it's uint8 for cv2
+    if img.dtype != np.uint8:
+        img = img.astype(np.uint8)
+    
+    # Ensure 3-channel for floodFill
+    if len(img.shape) == 2 or img.shape[2] == 1:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+    H, W, C = img.shape
+    
+    # Start flood fill from the center
+    center_y, center_x = H // 2, W // 2
+    
+    # Create a slightly larger mask for flood fill
+    mask = np.zeros((H+2, W+2), np.uint8)
+    flood_img = img.copy()
+
+    # Replace a small region around the center with background gray
+    block_size = 10
+    half_block = block_size // 2
+    y1 = max(0, center_y - half_block)
+    y2 = min(H, center_y + half_block)
+    x1 = max(0, center_x - half_block)
+    x2 = min(W, center_x + half_block)
+    flood_img[y1:y2, x1:x2] = bg_gray
+    
+    # Flood fill from center
+    fill_color = (127,127,127)
+    lo_diff = (5,5,5)
+    up_diff = (5,5,5)
+    cv2.floodFill(
+        flood_img, mask, (center_x, center_y), fill_color, 
+        loDiff=lo_diff, upDiff=up_diff, flags=4
+    )
+    
+    # Create binary mask of the flooded region
+    flood_mask = np.all(flood_img == fill_color, axis=2).astype(np.uint8) * 255
+    
+    # Find contours
+    contours, _ = cv2.findContours(flood_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return img
+    
+    # Get largest contour
+    largest_contour = max(contours, key=cv2.contourArea)
+    x, y, w, h = cv2.boundingRect(largest_contour)
+    
+    # Add size constraints
+    min_area_ratio = 0.1
+    min_area = H * W * min_area_ratio
+    if cv2.contourArea(largest_contour) < min_area:
+        if debug_path:
+            debug_img = img.copy()
+            cv2.putText(debug_img, "Crop failed: Region too small", (10, 30), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+            cv2.imwrite(f"{debug_path}/debug_crop.png", debug_img)
+        return img
+
+    if debug_path:
+        debug_img = img.copy()
+        cv2.rectangle(debug_img, (x,y),(x+w,y+h),(0,0,255),2)
+        cv2.imwrite(f"{debug_path}/debug_crop.png", debug_img)
+
     return img[y:y+h, x:x+w]
 
 
 
 
-
-def segment_lines(img, bg_gray=50, sep_threshold=200, min_height=7, verbose=0, debug_path=None) -> Tuple[List[Tuple[int,int]], int, int]:
+def segment_lines(img, bg_gray=50, sep_threshold=300, min_height=7, verbose=0, debug_path=None) -> Tuple[List[Tuple[int,int]], int, int]:
     """
     Scan horizontally to detect line boxes in a grayscale image.
 
@@ -84,7 +163,6 @@ def segment_lines(img, bg_gray=50, sep_threshold=200, min_height=7, verbose=0, d
     Returns:
         list of tuples: [(y1, y2), ...] line bounding boxes.
     """
-    
     H, W = img.shape
     line_boxes = []
 
@@ -93,8 +171,6 @@ def segment_lines(img, bg_gray=50, sep_threshold=200, min_height=7, verbose=0, d
 
     stat_boundary_left = 0
     stat_boundary_right = 0
-
-    img[:, -3:] = 50
 
     for y in range(H):
         # Count non-background pixels in this row
@@ -115,14 +191,24 @@ def segment_lines(img, bg_gray=50, sep_threshold=200, min_height=7, verbose=0, d
                 y_start = None
 
         if stat_boundary_left == 0 and stat_boundary_right == 0 and row_foreground >= sep_threshold:
-            stat_boundary_left = 0
-            while stat_boundary_left < W and not np.any(img[y, stat_boundary_left:stat_boundary_left+1] != bg_gray):
-                stat_boundary_left += 1
-            stat_boundary_right = W
-            while stat_boundary_right > 0 and not np.any(img[y, stat_boundary_right:stat_boundary_right+1] != bg_gray):
-                stat_boundary_right -= 1
-            stat_boundary_right+=1
-            if(verbose > 1): print(f"Stat Left:{stat_boundary_left} / Right: {stat_boundary_right}")
+            x = 0
+            header_width = 0
+            while x < W and not np.any(img[y, x:x+1] != bg_gray):
+                x+=1
+            
+            while x < W and np.all(img[y, x:x+1] == 255):
+                x+=1
+                header_width+=1
+            
+            if(header_width >= 200):
+                stat_boundary_left = 0
+                while stat_boundary_left < W and not np.any(img[y, stat_boundary_left:stat_boundary_left+1] != bg_gray):
+                    stat_boundary_left += 1
+                stat_boundary_right = W
+                while stat_boundary_right > 0 and not np.any(img[y, stat_boundary_right:stat_boundary_right+1] != bg_gray):
+                    stat_boundary_right -= 1
+                stat_boundary_right+=1
+                if(verbose > 1): print(f"Stat Left:{stat_boundary_left} / Right: {stat_boundary_right}")
 
     # Handle last line if open at end of image
     if inside_line and y_start is not None:
@@ -190,9 +276,7 @@ def segment_chars(line_img, bg_gray=50, debug_path=None, line_idx=0, settings=No
     x=0
     while x < imgW and not has_foreground(line_img[:, x:x+1]):
             x += 1
-    if(x == stat_left) and line_idx > 2: 
-        line_type = "STAT"
-        returnCentered = False
+    if(x < imgW/4) and line_idx > 2: line_type = "STAT"
 
     boxes = []
 
@@ -433,9 +517,11 @@ def segment_image(img, data_directory="OCR", debug_path=None, settings=None) -> 
     img = crop_img(img, 50, debug_path)
 
 
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
     H, W = img.shape
 
-    line_boxes, left, right = segment_lines(img, bg_gray=50,sep_threshold=200, debug_path=debug_path, verbose=settings.get('verbose', 0))
+    line_boxes, left, right = segment_lines(img, bg_gray=50, sep_threshold=350, debug_path=debug_path, verbose=settings.get('verbose', 0))
 
     offset_rules = {}
     with open(f"{data_directory}/offset_rules.json", "r") as f:
