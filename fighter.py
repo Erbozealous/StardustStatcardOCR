@@ -1,5 +1,5 @@
 import re
-def processFighter(text):
+def processFighter(text, removeEmpty=False):
     template = {
         'health': '',
         'evasion': '',
@@ -99,7 +99,11 @@ def processFighter(text):
      # packaging the output
     output = f"['{weapon_name}'] = {{\n"
     for key, value in template.items():
-        output += f"    ['{key}'] = '{value}',\n"
+        if(removeEmpty):
+            if value:
+                output += f"    ['{key}'] = '{value}',\n"
+        else:
+            output += f"    ['{key}'] = '{value}',\n"
     output += "},"
 
     return output

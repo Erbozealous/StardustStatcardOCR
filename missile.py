@@ -1,5 +1,5 @@
 import re
-def processMissile(text):
+def processMissile(text, removeEmpty=False):
     template = {
         'burst':'',
         'burstsshots':'',
@@ -119,7 +119,11 @@ def processMissile(text):
      # packaging the output
     output = f"['{weapon_name}'] = {{\n"
     for key, value in template.items():
-        output += f"    ['{key}'] = '{value}',\n"
+        if(removeEmpty):
+            if value:
+                output += f"    ['{key}'] = '{value}',\n"
+        else:
+            output += f"    ['{key}'] = '{value}',\n"
     output += "},"
 
     

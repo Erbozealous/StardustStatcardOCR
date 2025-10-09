@@ -201,7 +201,7 @@ class SettingsWindow:
     def __init__(self, parent, current_settings):
         self.window = tk.Toplevel(parent)
         self.window.title("OCR Settings")
-        self.window.geometry("400x500")
+        self.window.geometry("400x600")
         self.window.transient(parent)  # Make window modal
         self.window.grab_set()
         
@@ -249,6 +249,10 @@ class SettingsWindow:
         # Check for existing weapon
         self.existing_weapon_var.set(self.current_settings.get('existing_weapon', True))
         
+        # Remove empty boxes
+        self.remove_empty_var.set(self.current_settings.get('remove_empty', False))
+
+
         # Set theme
         self.theme_var.set(self.current_settings.get('theme', 'dark'))
     
@@ -315,6 +319,11 @@ class SettingsWindow:
                           variable=self.existing_weapon_var).pack(anchor="w", padx=5, pady=2)
         
         
+        self.remove_empty_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(other_options_frame, text="Remove empty values from output",
+                        variable=self.remove_empty_var).pack(anchor="w", padx=5, pady=2)
+
+
         # Theme
         theme_frame = ttk.Frame(other_frame)
         theme_frame.pack(padx=5, pady=(5, 8), fill="x")
@@ -345,6 +354,7 @@ class SettingsWindow:
                 'width_large': int(self.width_large_var.get()),
                 'save_images': self.save_images_var.get(),
                 'existing_weapon': self.existing_weapon_var.get(),
+                'remove_empty': self.remove_empty_var.get(),
                 'theme': self.theme_var.get() if hasattr(self, 'theme_var') else 'dark',
 
             }
@@ -394,20 +404,24 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None, 
         else:
             if(settings.get('verbose', 1) > 0): print(f"Item '{weapon_name}' does not exist in the database.")
     
+    prune = False
+    if settings is not None:
+        prune = settings.get('remove_empty', False)
+
     if weapon_type == "pointdefense":
-        output = pointdefense.processPointDefense(text)
+        output = pointdefense.processPointDefense(text, prune)
     elif weapon_type == "laser":
-        output = laser.processLaser(text)
+        output = laser.processLaser(text, prune)
     elif weapon_type == "missile":
-        output = missile.processMissile(text)
+        output = missile.processMissile(text, prune)
     elif weapon_type == "beam":
-        output = sustainedbeam.processSustainedBeam(text)
+        output = sustainedbeam.processSustainedBeam(text, prune)
     elif weapon_type == "fighter":
-        output = fighter.processFighter(text)
+        output = fighter.processFighter(text, prune)
     elif weapon_type == "fighterweapon":
-        output = fighterweapon.processFighterWeapon(text)
+        output = fighterweapon.processFighterWeapon(text, prune)
     elif weapon_type == "shield":
-        output = shield.processShield(text)
+        output = shield.processShield(text, prune)
     else:
         raise ValueError(f"Unknown weapon type: {weapon_type}")
     
@@ -517,6 +531,7 @@ def load_default_settings():
         'width_large': 8,
         'save_images': False,
         'existing_weapon': True,
+        'remove_empty' : False,
         'theme': 'dark',
     }
     return default_settings

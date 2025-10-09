@@ -1,5 +1,5 @@
 import re
-def processSustainedBeam(text):
+def processSustainedBeam(text, removeEmpty=False):
     template = {
         'burst':'',
         'burstsshots':'',
@@ -195,7 +195,11 @@ def processSustainedBeam(text):
     # Format the output string
     output = f"['{weapon_name}'] = {{\n"
     for key, value in template.items():
-        output += f"    ['{key}'] = '{value}',\n"
+        if(removeEmpty):
+            if value:
+                output += f"    ['{key}'] = '{value}',\n"
+        else:
+            output += f"    ['{key}'] = '{value}',\n"
     output += "},"
     
     return output

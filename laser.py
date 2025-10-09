@@ -1,5 +1,5 @@
 import re
-def processLaser(text):
+def processLaser(text, removeEmpty=False):
     template = {
         'burst': '',
         'burstsshots': '',
@@ -124,7 +124,11 @@ def processLaser(text):
      # packaging the output
     output = f"['{weapon_name}'] = {{\n"
     for key, value in template.items():
-        output += f"    ['{key}'] = '{value}',\n"
+        if(removeEmpty):
+            if value:
+                output += f"    ['{key}'] = '{value}',\n"
+        else:
+           output += f"    ['{key}'] = '{value}',\n" 
     output += "},"
 
     return output

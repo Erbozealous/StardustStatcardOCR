@@ -1,5 +1,5 @@
 import re
-def processShield(text):
+def processShield(text, removeEmpty=False):
     template = {
         'capacity' : '',
         'delay' : '',
@@ -83,7 +83,11 @@ def processShield(text):
     output = "{{Tooltip|" + template['capacity'] + "|\n"
     output +="{{ShieldInfobox\n"
     for key, value in template.items():
-        output += f"| {key} = {value}\n"
+        if(removeEmpty):
+            if value:
+                output += f"| {key} = {value}\n"
+        else:
+            output += f"| {key} = {value}\n"
     output += "}}}}"
 
     return output
