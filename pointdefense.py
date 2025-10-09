@@ -59,35 +59,38 @@ def processPointDefense(text, removeEmpty=False):
 
 
     # accuracyvalues
-    accuracyvalues = re.search(r'^((?!Missile|Spacecraft).)*Accuracy Values.*\n(.+k[mn])?\n(.+k[mn])?\n(.+k[mn])?', text, re.MULTILINE)
+    accuracyvalues = re.search(r'^Accuracy Values.*\n(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?', text, re.MULTILINE)
     if accuracyvalues:
-        print(accuracyvalues.group(2))
-        print(accuracyvalues.group(3))
-        print(accuracyvalues.group(4))
-        accuracyvalues_string = accuracyvalues.group(2) + " <br> " + accuracyvalues.group(3)
-        if accuracyvalues.group(4): accuracyvalues_string+=" <br> " + accuracyvalues.group(4)
-        template['accuracyvalues'] = re.sub(r"kn", r"km", accuracyvalues_string)
-        template['accuracyvalues'] = re.sub(r"@", "0", template['accuracyvalues']) # Replace '@' with '0'
+        accuracyvalues_string = accuracyvalues.group(1)
+        num = 2
+        while accuracyvalues.group(num):
+            accuracyvalues_string += " <br> " + accuracyvalues.group(num)
+            num+=1
+        template['accuracy'] = accuracyvalues_string
 
-
+    
     # Missile Accuracy
-    missileaccuracy = re.search(r'Missile Accuracy Values.*\n(.+km).*\n(.+km)?.*\n(.+km)?', text)
+    missileaccuracy = re.search(r'Missile Accuracy Values.*\n(.+km).*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?Spacecraft', text, re.MULTILINE)
     if missileaccuracy:
-        missile_mod_string = missileaccuracy.group(1) + " <br> " + missileaccuracy.group(2)
-        if missileaccuracy.group(3): missile_mod_string+=" <br> " + missileaccuracy.group(3)
-        template['missileaccuracy'] = re.sub(r"kn", r"km", missile_mod_string)
-        # resub again to replace @ with 0
-        template['missileaccuracy'] = re.sub(r"@", "0", template['missileaccuracy'])
+        missile_mod_string = missileaccuracy.group(1)
+        num = 2
+        while missileaccuracy.group(num):
+            missile_mod_string += " <br> " + missileaccuracy.group(num)
+            num+=1
+        template['missileaccuracy'] = missile_mod_string
+    
 
-
+    
      # spacecraftaccuracy
-    spacecraftaccuracy = re.search(r'Spacecraft Accuracy Values.*\n(.+km).*\n(.+km)?.*\n(.+km)?', text)
+    spacecraftaccuracy = re.search(r'Spacecraft Accuracy Values.*\n(.+km).*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?(.+km)?.*\n?', text, re.MULTILINE)
     if spacecraftaccuracy:
-        space_mod_string = spacecraftaccuracy.group(1) + " <br> " + spacecraftaccuracy.group(2)
-        if spacecraftaccuracy.group(3): space_mod_string+=" <br> " + spacecraftaccuracy.group(3)
-        template['spacecraftaccuracy'] = re.sub(r"kn", r"km", space_mod_string)
-        # resub again to replace @ with 0
-        template['spacecraftaccuracy'] = re.sub(r"@", "0", template['spacecraftaccuracy'])
+        space_mod_string = spacecraftaccuracy.group(1)
+        num = 2
+        while spacecraftaccuracy.group(num):
+            space_mod_string += " <br> " + spacecraftaccuracy.group(num)
+            num+=1
+        template['spacecraftaccuracy'] = space_mod_string
+
 
 
     # missilehitchance

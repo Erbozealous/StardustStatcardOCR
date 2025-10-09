@@ -302,7 +302,7 @@ class SettingsWindow:
         
         # Save processed images
         self.save_images_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(image_options_frame, text="Save processed images to a separate folder", 
+        ttk.Checkbutton(image_options_frame, text="Save debug images to a separate folder", 
                        variable=self.save_images_var).pack(anchor="w", padx=5, pady=2)
         
         
