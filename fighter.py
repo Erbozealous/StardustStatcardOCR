@@ -54,7 +54,7 @@ def processFighter(text, removeEmpty=False):
     # sramblemulti
     sramblemulti = re.search(r'ramb[^0-9\n]+ulti[^0-9\n]*([\d]+\.?[\d]*)', text)
     if sramblemulti:
-        template['sramblemulti'] = sramblemulti.group(1) + "x"
+        template['scramblemulti'] = sramblemulti.group(1) + "x"
 
     # maxrange
     maxrange = re.search(r'ange[^0-9\d]*([\d]+)', text)
