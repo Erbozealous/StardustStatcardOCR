@@ -7,7 +7,7 @@ def processFighter(text, removeEmpty=False):
         'squadronsize': '',
         'scramblehealth': '',
         'scrambletime': '',
-        'sramblemulti': '',
+        'scramblemulti': '',
         'maxrange': '',
         'speed': '',
         'orbit': '',
