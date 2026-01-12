@@ -7,8 +7,8 @@ def processSustainedBeam(text, removeEmpty=False):
         'maxrange':'',
         'total':'',
         'modrange':'',
-        'startdamage':'',
-        'enddamage':'',
+        'modstartdamage':'',
+        'modenddamage':'',
         'damage':'',
         'startdamage':'',
         'enddamage':'',
@@ -68,28 +68,38 @@ def processSustainedBeam(text, removeEmpty=False):
     if modrange:
         template['modrange'] = modrange.group(1) + " km - " + modrange.group(2) + " km"
 
+    # modstartdamage
+    modstartdamage = re.search(r'Starting[^\d]+([\d\.]+)', text)
+    if modstartdamage:
+        template['modstartdamage'] = modstartdamage.group(1) + " DPS"
+
+    # modenddamage
+    modenddamage = re.search(r'Ending[^\d]+([\d\.]+)', text)
+    if modenddamage:
+        template['modenddamage'] = modenddamage.group(1) + " DPS"
+
     # startdamage
-    startdamage = re.search(r'Tot\D+Up\D+([\d]+\.?[\d]*)[^0-9\n]*([\d]+\.?[\d]*)?', text)
+    startdamage = re.search(r'Close[^\d]+([\d\.]+)[- ]*([\d\.]+)?', text)
     if startdamage:
         template['startdamage'] = startdamage.group(1)
         if startdamage.group(2): template['startdamage'] += " - " + startdamage.group(2)
 
-    enddamage = re.search(r'Tot\D+Max\D+([\d]+\.?[\d]*)[^0-9\n]*([\d]+\.?[\d]*)?', text)
+    enddamage = re.search(r'Damage at[^\d]+([\d\.]+)[- ]*([\d\.]+)?', text)
     if enddamage:
         template['enddamage'] = enddamage.group(1)
         if enddamage.group(2): template['enddamage'] += " - " + enddamage.group(2)
     
     # damage
-    damage = re.search(r'(?!.*Info)^Da[nm]age\D+([\d]+\.?[\d]*)[^0-9\n]*([\d]+\.?[\d]*)?[^0-9\n]+$', text, re.MULTILINE)
+    damage = re.search(r'Damage: ([\d\.]+)[ -DPS]*([\d\.]+)?', text, re.MULTILINE)
     if(damage):
         template['damage'] = damage.group(1) + " DPS"
         if(damage.group(2)): template['damage'] += " - " + damage.group(2) + " DPS"
         
 
     # shielddamage
-    shielddamage = re.search(r'Da[^0-9\n]+Multi[^0-9\n]*([\d]+\.?[\d]*)[^0-9\n]*$', text, re.MULTILINE)
+    shielddamage = re.search(r'Multiplier: ([\d\.x]+)$', text, re.MULTILINE)
     if shielddamage:
-        template['shielddamage'] = shielddamage.group(1) + "x"
+        template['shielddamage'] = shielddamage.group(1)
 
     # shieldbypass
     shieldbypass = re.search(r'Gate.*(No|Yes)', text)
