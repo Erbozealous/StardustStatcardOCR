@@ -78,7 +78,7 @@ def processMissile(text, removeEmpty=False):
     # objectives
     objectives = re.search(r'Objective\D*(No|Yes)', text)
     if objectives:
-        template['objectives'] = objectives.group(1)
+        template['objectives'] = objectives.group(1).replace("<", "e")
 
     # charge
     charge = re.search(r'^Charge\D*(\d*\.?\d*)', text, re.MULTILINE)

@@ -158,7 +158,8 @@ def processSustainedBeam(text, removeEmpty=False):
     # objectives
     objectives = re.search(r'Objective\D*(No|Yes)', text)
     if objectives:
-        template['objectives'] = objectives.group(1)
+        # Replace Y<s with Yes
+        template['objectives'] = objectives.group(1).replace("<", "e")
 
     # charge
     charge = re.search(r'Charge[^0-9\r\n]*(\d\.?\d*).+$', text, re.MULTILINE)
