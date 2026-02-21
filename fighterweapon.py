@@ -164,9 +164,18 @@ def processFighterWeapon(text, removeEmpty=False):
     # Other information
 
     # objectives
-    objectives = re.search(r'Obj[^0-9\n]*(Yes|No)', text)
+    objectives = re.search(r'Objective\D*(N|Y)', text)
     if objectives:
-        template['objectives'] = objectives.group(1)
+        # Replace Y<s with Yes
+        match objectives.group(1):
+            case "N":
+                template['objectives'] = "No"
+            case "Y":   
+                template['objectives'] = "Yes"
+        # No default case needed since the regex only matches Y or N, but we can add a default case just in case
+            case _:
+                template['objectives'] = objectives.group(1)
+                
 
 
     # reload

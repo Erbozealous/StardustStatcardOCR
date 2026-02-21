@@ -1,5 +1,6 @@
 import json
 import cv2
+import re
 import numpy as np
 import onnxruntime as ort
 
@@ -62,34 +63,69 @@ class OCR:
 
         return x, canvas
 
-    def ocr_segmented(self, img, settings=None) -> str:
-        """Runs OCR on a segmented image."""
+    def ocr_segmented(self, img, settings=None, confidence_threshold: float = 0.80) -> tuple[str, list[str]]:
+        """Runs OCR on a segmented image.
+        
+        Returns:
+            (full_text, low_confidence_lines)
+        """
         settings = settings or self.settings
+
 
         debug_path = self.debug_path if settings.get('save_images', False) else None
         lines = segment_image(img, data_directory=self.data_directory, debug_path=debug_path, settings=settings)
 
         results: list[str] = []
+        low_conf_lines: list[str] = []
+
         for line_idx, chars in enumerate(lines):
             line_str = ""
+            line_has_low_conf = False
+
             for charnum, char_img in enumerate(chars):
                 if not np.any(char_img != self.bg_gray):
                     line_str += " "
                     continue
 
                 x, preprocessed_img = self.preprocess_char(char_img)
-                outputs = self.ort_session.run(None, {"input": x})
-                output_arr = np.array(outputs[0])
-                pred_idx = int(np.argmax(output_arr, axis=1)[0])
-                line_str += self.label_to_char[pred_idx]
 
-            results.append(line_str)
+                outputs = self.ort_session.run(None, {"input": x})
+                logits = np.array(outputs[0])  # shape (1, num_classes)
+
+                # --- Softmax for confidence ---
+                exp_logits = np.exp(logits - np.max(logits, axis=1, keepdims=True))
+                probs = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
+
+                pred_idx = int(np.argmax(probs, axis=1)[0])
+                confidence = float(np.max(probs, axis=1)[0])
+
+                predicted_char = self.label_to_char[pred_idx]
+                line_str += predicted_char
+
+                # Check confidence threshold
+                if confidence < confidence_threshold:
+                    line_has_low_conf = True
+
+                    if settings.get('verbose', 0) > 1:
+                        print(
+                            f"[LOW CONF] Line {line_idx}, Char {charnum} "
+                            f"-> '{predicted_char}' ({confidence:.3f})"
+                        )
+
+
+            if not re.search(r'EWv]KI', line_str):
+                results.append(line_str)
+
+            if line_has_low_conf and not re.search(r'EWv]KI', line_str):
+                low_conf_lines.append(line_str)
+
+        full_text = "\n".join(results)
 
         if settings.get('verbose', 0) > 0:
             print("OCR Results:")
-            print("\n".join(results))
+            print(full_text)
 
-        return "\n".join(results)
+        return full_text, low_conf_lines
 
 
 # ----------------------------

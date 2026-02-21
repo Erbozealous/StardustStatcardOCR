@@ -27,7 +27,7 @@ class WeaponStatsGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Analyzer")
-        self.root.geometry("850x650")
+        self.root.geometry("850x700")
         
         # Read from settings.json if it exists
         if os.path.exists('settings.json'):
@@ -108,10 +108,16 @@ class WeaponStatsGUI:
         if file_path:
             try:
                 image = cv2.imread(file_path, cv2.IMREAD_COLOR)
-                result = process_image_to_template(image, self.weapon_type.get(), self.settings, self.ONNX)
+                result, low_conf_lines = process_image_to_template(image, self.weapon_type.get(), self.settings, self.ONNX)
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
-                self.status_var.set(self.weapon_type.get() +  " processed successfully")
+                if low_conf_lines:
+                    low_conf_string = "\n⚠ Low confidence lines detected:\n"
+                    for line in low_conf_lines:
+                        low_conf_string += f"  -> {line}\n"
+                    self.status_var.set(low_conf_string)
+                else:
+                    self.status_var.set(self.weapon_type.get() + " processed successfully")
             except Exception as e:
                 messagebox.showerror("Error", f"Error processing image: {str(e)}")
                 self.status_var.set("Error processing image")
@@ -144,10 +150,17 @@ class WeaponStatsGUI:
                 
                 # Convert PIL image to OpenCV format for processing
                 opencv_image = cv2.cvtColor(np.array(image), cv2.IMREAD_COLOR)
-                result = process_image_to_template(opencv_image, self.weapon_type.get(), self.settings, self.ONNX)
+                result, low_conf_lines = process_image_to_template(opencv_image, self.weapon_type.get(), self.settings, self.ONNX)
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
-                self.status_var.set(self.weapon_type.get() + " processed successfully")
+                if low_conf_lines:
+                    low_conf_string = "\n⚠ Low confidence lines detected:\n"
+                    for line in low_conf_lines:
+                        low_conf_string += f"  -> {line}\n"
+                    self.status_var.set(low_conf_string)
+                else:
+                    self.status_var.set(self.weapon_type.get() + " processed successfully")
+
 
             else:
                 # Wayland path (Linux)
@@ -180,11 +193,19 @@ class WeaponStatsGUI:
                 
                 # Open and process the image
                 image = cv2.imread(temp_path, cv2.IMREAD_COLOR)
-                result = process_image_to_template(image, self.weapon_type.get(), self.settings, self.ONNX)
-                
+                result, low_conf_lines = process_image_to_template(image, self.weapon_type.get(), self.settings, self.ONNX)
                 self.output_text.delete(1.0, tk.END)
                 self.output_text.insert(tk.END, result)
-                self.status_var.set(self.weapon_type.get() + " image processed successfully")
+                if low_conf_lines:
+                    low_conf_string = "\n⚠ Low confidence lines detected:\n"
+                    for line in low_conf_lines:
+                        low_conf_string += f"  -> {line}\n"
+                    self.status_var.set(low_conf_string)
+                else:
+                    self.status_var.set(self.weapon_type.get() + " processed successfully")
+
+
+
 
         except Exception as e:
             messagebox.showerror("Error", f"Error: {str(e)}")
@@ -378,7 +399,7 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None, 
     if onnx_processor is None:
         raise ValueError("ONNX processor must be provided")
     
-    text = onnx_processor.ocr_segmented(image, settings)
+    text, low_conf_lines = onnx_processor.ocr_segmented(image, settings)
 
     # Extract weapon name (assumed to be in the first line)
     lines = text.split('\n')
@@ -426,7 +447,7 @@ def process_image_to_template(image, weapon_type='pointdefense', settings=None, 
         raise ValueError(f"Unknown weapon type: {weapon_type}")
     
 
-    return output
+    return output, low_conf_lines
 
 
 
