@@ -273,6 +273,8 @@ class SettingsWindow:
         # Remove empty boxes
         self.remove_empty_var.set(self.current_settings.get('remove_empty', False))
 
+        self.confidence_threshold_var.set(self.current_settings.get('confidence_threshold', 0.80))
+
 
         # Set theme
         self.theme_var.set(self.current_settings.get('theme', 'dark'))
@@ -326,6 +328,12 @@ class SettingsWindow:
         ttk.Checkbutton(image_options_frame, text="Save debug images to a separate folder", 
                        variable=self.save_images_var).pack(anchor="w", padx=5, pady=2)
         
+        # Confidence threshold for low confidence lines
+        self.confidence_threshold_var = tk.DoubleVar(value=0.80)
+        ttk.Label(image_options_frame, text="Low confidence threshold:").pack(anchor="w", padx=5, pady=(2, 4))
+        ttk.Entry(image_options_frame, textvariable=self.confidence_threshold_var, width=10).pack(anchor="w", padx=5, pady=2)
+
+        
         
     def create_other_settings(self):
         other_frame = ttk.LabelFrame(self.window, text="Other")
@@ -374,6 +382,7 @@ class SettingsWindow:
                 'width_medium': int(self.width_medium_var.get()),
                 'width_large': int(self.width_large_var.get()),
                 'save_images': self.save_images_var.get(),
+                'confidence_threshold': float(self.confidence_threshold_var.get()),
                 'existing_weapon': self.existing_weapon_var.get(),
                 'remove_empty': self.remove_empty_var.get(),
                 'theme': self.theme_var.get() if hasattr(self, 'theme_var') else 'dark',

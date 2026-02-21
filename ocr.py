@@ -71,6 +71,9 @@ class OCR:
         """
         settings = settings or self.settings
 
+        if settings.get('confidence_threshold', None) is not None:
+            confidence_threshold = settings['confidence_threshold']
+
 
         debug_path = self.debug_path if settings.get('save_images', False) else None
         lines = segment_image(img, data_directory=self.data_directory, debug_path=debug_path, settings=settings)
